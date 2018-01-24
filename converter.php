@@ -24,7 +24,7 @@ class Miner {
         return $return;
     }
 
-    function toPHP($base = './phalcon') {
+    function toPHP($base = './zephir') {
         $tree = $this->listFolderFiles($base);
         foreach ($tree as $key=>$value) {
             if (is_array($value)) {
@@ -56,10 +56,10 @@ function rrmdir($path) {
 
 $miner = new Miner();
 $miner->toPHP();
-rrmdir("./php");
+rrmdir("./library");
 
 foreach ($miner->objects as $object) {
-    $file = str_replace("./phalcon","./php",str_replace(".zep",".php",$object["file"]));
+    $file = str_replace("./zephir","./library",str_replace(".zep",".php",$object["file"]));
     if (!is_dir(dirname($file)))
         mkdir(dirname($file),0777,true);
 
