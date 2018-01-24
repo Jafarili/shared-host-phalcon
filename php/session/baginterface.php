@@ -1,0 +1,57 @@
+<?php
+
+
+namespace Phalcon\Session;
+
+
+
+/***
+ * Phalcon\Session\BagInterface
+ *
+ * Interface for Phalcon\Session\Bag
+ **/
+
+interface BagInterface {
+
+    /***
+	 * Initializes the session bag. This method must not be called directly, the
+	 * class calls it when its internal data is accessed
+	 **/
+    public function initialize(); 
+
+    /***
+	 * Destroys the session bag
+	 **/
+    public function destroy(); 
+
+    /***
+	 * Setter of values
+	 **/
+    public function set($property , $value ); 
+
+    /***
+	 * Getter of values
+	 **/
+    public function get($property , $defaultValue  = null ); 
+
+    /***
+	 * Isset property
+	 **/
+    public function has($property ); 
+
+    /***
+	 * Setter of values
+	 **/
+    public function __set($property , $value ); 
+
+    /***
+	 * Getter of values
+	 **/
+    public function __get($property ); 
+
+    /***
+	 * Isset property
+	 **/
+    public function __isset($property ); 
+
+}
