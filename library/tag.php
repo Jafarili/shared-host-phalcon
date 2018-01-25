@@ -18,27 +18,27 @@ use Phalcon\Mvc\UrlInterface;
 
 class Tag {
 
-    const HTML32= 1;;
+    const HTML32= 1;
 
-    const HTML401_STRICT= 2;;
+    const HTML401_STRICT= 2;
 
-    const HTML401_TRANSITIONAL= 3;;
+    const HTML401_TRANSITIONAL= 3;
 
-    const HTML401_FRAMESET= 4;;
+    const HTML401_FRAMESET= 4;
 
-    const HTML5= 5;;
+    const HTML5= 5;
 
-    const XHTML10_STRICT= 6;;
+    const XHTML10_STRICT= 6;
 
-    const XHTML10_TRANSITIONAL= 7;;
+    const XHTML10_TRANSITIONAL= 7;
 
-    const XHTML10_FRAMESET= 8;;
+    const XHTML10_FRAMESET= 8;
 
-    const XHTML11= 9;;
+    const XHTML11= 9;
 
-    const XHTML20= 10;;
+    const XHTML20= 10;
 
-    const XHTML5= 11;;
+    const XHTML5= 11;
 
     /***
 	 * Pre-assigned values for components

@@ -36,7 +36,7 @@ class Beanstalk {
 	 *
 	 * @const integer
 	 **/
-    const DEFAULT_DELAY= 0;;
+    const DEFAULT_DELAY= 0;
 
     /***
 	 * Jobs with smaller priority values will be scheduled before jobs with larger priorities.
@@ -44,7 +44,7 @@ class Beanstalk {
 	 *
 	 * @const integer
 	 **/
-    const DEFAULT_PRIORITY= 100;;
+    const DEFAULT_PRIORITY= 100;
 
     /***
 	 * Time to run - number of seconds to allow a worker to run this job.
@@ -52,25 +52,25 @@ class Beanstalk {
 	 *
 	 * @const integer
 	 **/
-    const DEFAULT_TTR= 86400;;
+    const DEFAULT_TTR= 86400;
 
     /***
 	 * Default tube name
 	 * @const string
 	 **/
-    const DEFAULT_TUBE= default;;
+    const DEFAULT_TUBE= default;
 
     /***
 	 * Default connected host
 	 * @const string
 	 **/
-    const DEFAULT_HOST= 127.0.0.1;;
+    const DEFAULT_HOST= 127.0.0.1;
 
     /***
 	 * Default connected port
 	 * @const integer
 	 **/
-    const DEFAULT_PORT= 11300;;
+    const DEFAULT_PORT= 11300;
 
     /***
 	 * Connection resource

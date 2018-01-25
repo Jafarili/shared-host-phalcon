@@ -24,17 +24,17 @@ use Phalcon\Mvc\Model\BinderInterface;
 
 abstract class Dispatcher {
 
-    const EXCEPTION_NO_DI= 0;;
+    const EXCEPTION_NO_DI= 0;
 
-    const EXCEPTION_CYCLIC_ROUTING= 1;;
+    const EXCEPTION_CYCLIC_ROUTING= 1;
 
-    const EXCEPTION_HANDLER_NOT_FOUND= 2;;
+    const EXCEPTION_HANDLER_NOT_FOUND= 2;
 
-    const EXCEPTION_INVALID_HANDLER= 3;;
+    const EXCEPTION_INVALID_HANDLER= 3;
 
-    const EXCEPTION_INVALID_PARAMS= 4;;
+    const EXCEPTION_INVALID_PARAMS= 4;
 
-    const EXCEPTION_ACTION_NOT_FOUND= 5;;
+    const EXCEPTION_ACTION_NOT_FOUND= 5;
 
     protected $_dependencyInjector;
 

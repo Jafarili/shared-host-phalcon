@@ -70,21 +70,21 @@ use Phalcon\Events\ManagerInterface as EventsManagerInterface;
 
 abstract class Model {
 
-    const TRANSACTION_INDEX= transaction;;
+    const TRANSACTION_INDEX= transaction;
 
-    const OP_NONE= 0;;
+    const OP_NONE= 0;
 
-    const OP_CREATE= 1;;
+    const OP_CREATE= 1;
 
-    const OP_UPDATE= 2;;
+    const OP_UPDATE= 2;
 
-    const OP_DELETE= 3;;
+    const OP_DELETE= 3;
 
-    const DIRTY_STATE_PERSISTENT= 0;;
+    const DIRTY_STATE_PERSISTENT= 0;
 
-    const DIRTY_STATE_TRANSIENT= 1;;
+    const DIRTY_STATE_TRANSIENT= 1;
 
-    const DIRTY_STATE_DETACHED= 2;;
+    const DIRTY_STATE_DETACHED= 2;
 
     protected $_dependencyInjector;
 

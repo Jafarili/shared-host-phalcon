@@ -22,7 +22,7 @@ class Version {
 	 * );
 	 * </code>
 	 **/
-    const VERSION_MAJOR= 0;;
+    const VERSION_MAJOR= 0;
 
     /***
 	 * The constant referencing the major version. Returns 1
@@ -33,7 +33,7 @@ class Version {
 	 * );
 	 * </code>
 	 **/
-    const VERSION_MEDIUM= 1;;
+    const VERSION_MEDIUM= 1;
 
     /***
 	 * The constant referencing the major version. Returns 2
@@ -44,7 +44,7 @@ class Version {
 	 * );
 	 * </code>
 	 **/
-    const VERSION_MINOR= 2;;
+    const VERSION_MINOR= 2;
 
     /***
 	 * The constant referencing the major version. Returns 3
@@ -55,7 +55,7 @@ class Version {
 	 * );
 	 * </code>
 	 **/
-    const VERSION_SPECIAL= 3;;
+    const VERSION_SPECIAL= 3;
 
     /***
 	 * The constant referencing the major version. Returns 4
@@ -66,7 +66,7 @@ class Version {
 	 * );
 	 * </code>
 	 **/
-    const VERSION_SPECIAL_NUMBER= 4;;
+    const VERSION_SPECIAL_NUMBER= 4;
 
     /***
 	 * Area where the version number is set. The format is as follows:

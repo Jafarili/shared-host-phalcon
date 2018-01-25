@@ -35,7 +35,7 @@ use Phalcon\Config\Exception;
 
 class Config {
 
-    const DEFAULT_PATH_DELIMITER= .;;
+    const DEFAULT_PATH_DELIMITER= .;
 
     protected static $_pathDelimiter;
 

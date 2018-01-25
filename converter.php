@@ -127,7 +127,7 @@ function classMaker($object) {
                         $class .= "= ".$constant["default"]["value"].";";
                     }
                 }
-                $class .= ";\n\n";
+                $class .= "\n\n";
 
             }
         }

@@ -31,25 +31,25 @@ use Phalcon\Session\AdapterInterface as SessionInterface;
 
 class Security {
 
-    const CRYPT_DEFAULT= 0;;
+    const CRYPT_DEFAULT= 0;
 
-    const CRYPT_STD_DES= 1;;
+    const CRYPT_STD_DES= 1;
 
-    const CRYPT_EXT_DES= 2;;
+    const CRYPT_EXT_DES= 2;
 
-    const CRYPT_MD5= 3;;
+    const CRYPT_MD5= 3;
 
-    const CRYPT_BLOWFISH= 4;;
+    const CRYPT_BLOWFISH= 4;
 
-    const CRYPT_BLOWFISH_A= 5;;
+    const CRYPT_BLOWFISH_A= 5;
 
-    const CRYPT_BLOWFISH_X= 6;;
+    const CRYPT_BLOWFISH_X= 6;
 
-    const CRYPT_BLOWFISH_Y= 7;;
+    const CRYPT_BLOWFISH_Y= 7;
 
-    const CRYPT_SHA256= 8;;
+    const CRYPT_SHA256= 8;
 
-    const CRYPT_SHA512= 9;;
+    const CRYPT_SHA512= 9;
 
     protected $_dependencyInjector;
 

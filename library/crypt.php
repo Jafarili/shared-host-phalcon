@@ -26,19 +26,19 @@ use Phalcon\Crypt\Exception;
 
 class Crypt {
 
-    const PADDING_DEFAULT= 0;;
+    const PADDING_DEFAULT= 0;
 
-    const PADDING_ANSI_X_923= 1;;
+    const PADDING_ANSI_X_923= 1;
 
-    const PADDING_PKCS7= 2;;
+    const PADDING_PKCS7= 2;
 
-    const PADDING_ISO_10126= 3;;
+    const PADDING_ISO_10126= 3;
 
-    const PADDING_ISO_IEC_7816_4= 4;;
+    const PADDING_ISO_IEC_7816_4= 4;
 
-    const PADDING_ZERO= 5;;
+    const PADDING_ZERO= 5;
 
-    const PADDING_SPACE= 6;;
+    const PADDING_SPACE= 6;
 
     protected $_key;
 

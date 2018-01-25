@@ -71,9 +71,9 @@ use Phalcon\Mvc\Model\Validator;
 
 class Ip extends Validator {
 
-    const VERSION_4= FILTER_FLAG_IPV4;;
+    const VERSION_4= FILTER_FLAG_IPV4;
 
-    const VERSION_6= FILTER_FLAG_IPV6;;
+    const VERSION_6= FILTER_FLAG_IPV6;
 
     /***
 	 * Executes the validator

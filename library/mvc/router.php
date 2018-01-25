@@ -43,13 +43,13 @@ use Phalcon\Events\EventsAwareInterface;
 
 class Router {
 
-    const URI_SOURCE_GET_URL= 0;;
+    const URI_SOURCE_GET_URL= 0;
 
-    const URI_SOURCE_SERVER_REQUEST_URI= 1;;
+    const URI_SOURCE_SERVER_REQUEST_URI= 1;
 
-    const POSITION_FIRST= 0;;
+    const POSITION_FIRST= 0;
 
-    const POSITION_LAST= 1;;
+    const POSITION_LAST= 1;
 
     protected $_dependencyInjector;
 

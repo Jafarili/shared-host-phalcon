@@ -14,7 +14,7 @@ namespace Phalcon\Cli\Router;
 
 class Route {
 
-    const DEFAULT_DELIMITER=  ;;
+    const DEFAULT_DELIMITER=  ;
 
     protected $_pattern;
 

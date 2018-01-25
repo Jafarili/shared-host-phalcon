@@ -56,15 +56,15 @@ use Phalcon\Mvc\Model\ResultsetInterface;
 
 abstract class Resultset {
 
-    const TYPE_RESULT_FULL= 0;;
+    const TYPE_RESULT_FULL= 0;
 
-    const TYPE_RESULT_PARTIAL= 1;;
+    const TYPE_RESULT_PARTIAL= 1;
 
-    const HYDRATE_RECORDS= 0;;
+    const HYDRATE_RECORDS= 0;
 
-    const HYDRATE_OBJECTS= 2;;
+    const HYDRATE_OBJECTS= 2;
 
-    const HYDRATE_ARRAYS= 1;;
+    const HYDRATE_ARRAYS= 1;
 
     /***
 	 * Phalcon\Db\ResultInterface or false for empty resultset

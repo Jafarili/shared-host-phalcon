@@ -44,43 +44,43 @@ class View extends Injectable {
 	 * Render Level: To the main layout
 	 *
 	 **/
-    const LEVEL_MAIN_LAYOUT= 5;;
+    const LEVEL_MAIN_LAYOUT= 5;
 
     /***
 	 * Render Level: Render to the templates "after"
 	 *
 	 **/
-    const LEVEL_AFTER_TEMPLATE= 4;;
+    const LEVEL_AFTER_TEMPLATE= 4;
 
     /***
 	 * Render Level: To the controller layout
 	 *
 	 **/
-    const LEVEL_LAYOUT= 3;;
+    const LEVEL_LAYOUT= 3;
 
     /***
 	 * Render Level: To the templates "before"
 	 *
 	 **/
-    const LEVEL_BEFORE_TEMPLATE= 2;;
+    const LEVEL_BEFORE_TEMPLATE= 2;
 
     /***
 	 * Render Level: To the action view
 	 **/
-    const LEVEL_ACTION_VIEW= 1;;
+    const LEVEL_ACTION_VIEW= 1;
 
     /***
 	 * Render Level: No render any view
 	 *
 	 **/
-    const LEVEL_NO_RENDER= 0;;
+    const LEVEL_NO_RENDER= 0;
 
     /***
 	 * Cache Mode
 	 **/
-    const CACHE_MODE_NONE= 0;;
+    const CACHE_MODE_NONE= 0;
 
-    const CACHE_MODE_INVERSE= 1;;
+    const CACHE_MODE_INVERSE= 1;
 
     protected $_options;
 
