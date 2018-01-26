@@ -62,6 +62,17 @@ class Pdo {
 	 **/
     public function __construct($connection , $result , $sqlStatement  = null , $bindParams  = null , $bindTypes  = null ) {
 
+		$this->_connection = connection,
+			this->_pdoStatement = result;
+
+		if ( sqlStatement !== null ) {
+			$this->_sqlStatement = sqlStatement;
+		}
+		if ( bindParams !== null ) {
+			$this->_bindParams = bindParams;
+		}
+		if ( bindTypes !== null ) {
+			$this->_bindTypes = bindTypes;
     }
 
     /***
@@ -69,7 +80,7 @@ class Pdo {
 	 * So, as cursors are forward only, we need to execute the cursor again to fetch rows from the begining
 	 **/
     public function execute() {
-
+	{
     }
 
     /***
@@ -89,7 +100,7 @@ class Pdo {
 	 *</code>
 	 **/
     public function fetch($fetchStyle  = null , $cursorOrientation  = null , $cursorOffset  = null ) {
-
+	{
     }
 
     /***
@@ -109,7 +120,7 @@ class Pdo {
 	 *</code>
 	 **/
     public function fetchArray() {
-
+	{
     }
 
     /***
@@ -125,6 +136,26 @@ class Pdo {
 	 *</code>
 	 **/
     public function fetchAll($fetchStyle  = null , $fetchArgument  = null , $ctorArgs  = null ) {
+	{
+
+		$pdoStatement = $this->_pdoStatement;
+
+		if ( gettype($fetchStyle) == "integer" ) {
+
+			if ( fetchStyle == Db::FETCH_CLASS ) {
+				return pdoStatement->fetchAll(fetchStyle, fetchArgument, ctorArgs);
+			}
+
+			if ( fetchStyle == Db::FETCH_COLUMN ) {
+				return pdoStatement->fetchAll(fetchStyle, fetchArgument);
+			}
+
+			if ( fetchStyle == Db::FETCH_FUNC ) {
+				return pdoStatement->fetchAll(fetchStyle, fetchArgument);
+			}
+
+			return pdoStatement->fetchAll(fetchStyle);
+		}
 
     }
 
@@ -140,7 +171,61 @@ class Pdo {
 	 *</code>
 	 **/
     public function numRows() {
+	{
+			pdoStatement, matches, result, row;
 
+		$rowCount = $this->_rowCount;
+		if ( rowCount === false ) {
+
+			$connection = $this->_connection,
+				type = connection->getType();
+
+			/**
+			 * MySQL library properly returns the number of records PostgreSQL too
+			 */
+			if ( type == "mysql" || type == "pgsql" ) {
+				$pdoStatement = $this->_pdoStatement,
+					rowCount = pdoStatement->rowCount();
+			}
+
+			/**
+			 * We should get the count using a new statement :(
+			 */
+			if ( rowCount === false ) {
+
+				/**
+				 * SQLite/SQLServer returns resultsets that to the client eyes
+				 * (PDO) has an arbitrary number of rows, so we need to perfor (m
+				 * an extra count to know that
+				 */
+				$sqlStatement = $this->_sqlStatement;
+
+				/**
+				 * If the sql_statement starts with SELECT COUNT(*) we don't make the count
+				 */
+				if ( !starts_with(sqlStatement, "SELECT COUNT(*) ") ) {
+
+					$matches = null;
+					if ( preg_match("/^SELECT\\s+(.*)/i", sqlStatement, matches) ) {
+						$result = connection->query(
+							"SELECT COUNT(*) \"numrows\" FROM (SELECT " . matches[1] . ")",
+							this->_bindParams,
+							this->_bindTypes
+						);
+
+						$row = result->$fetch(),
+							rowCount = row["numrows"];
+					}
+				} else {
+					$rowCount = 1;
+				}
+			}
+
+			/**
+			 * Update the value to avoid further calculations
+			 */
+			$this->_rowCount = rowCount;
+		}
     }
 
     /***
@@ -159,7 +244,32 @@ class Pdo {
 	 *</code>
 	 **/
     public function dataSeek($number ) {
+	{
+		long n;
 
+		$connection = $this->_connection,
+			pdo = connection->getInternalHandler(),
+			sqlStatement = $this->_sqlStatement,
+			bindParams = $this->_bindParams;
+
+		/**
+		 * PDO doesn't support scrollable cursors, so we need to re-execute the statement
+		 */
+		if ( gettype($bindParams) == "array" ) {
+			$statement = pdo->prepare(sqlStatement);
+			if ( gettype($statement) == "object" ) {
+				$statement = connection->executePrepared(statement, bindParams, $this->_bindTypes);
+			}
+		} else {
+			$statement = pdo->query(sqlStatement);
+		}
+
+		$this->_pdoStatement = statement;
+
+		$n = -1, number--;
+		while n != number {
+			statement->$fetch();
+			$n++;
     }
 
     /***
@@ -188,14 +298,45 @@ class Pdo {
 	 *</code>
 	 **/
     public function setFetchMode($fetchMode , $colNoOrClassNameOrObject  = null , $ctorargs  = null ) {
+	{
 
+		$pdoStatement = $this->_pdoStatement;
+
+		if ( fetchMode == Db::FETCH_CLASS ) {
+			if ( pdoStatement->setFetchMode(fetchMode, colNoOrClassNameOrObject, ctorargs) ) {
+				$this->_fetchMode = fetchMode;
+				return true;
+			}
+			return false;
+		}
+
+		if ( fetchMode == Db::FETCH_INTO ) {
+			if ( pdoStatement->setFetchMode(fetchMode, colNoOrClassNameOrObject) ) {
+				$this->_fetchMode = fetchMode;
+				return true;
+			}
+			return false;
+		}
+
+		if ( fetchMode == Db::FETCH_COLUMN ) {
+			if ( pdoStatement->setFetchMode(fetchMode, colNoOrClassNameOrObject) ) {
+				$this->_fetchMode = fetchMode;
+				return true;
+			}
+			return false;
+		}
+
+		if ( pdoStatement->setFetchMode(fetchMode) ) {
+			$this->_fetchMode = fetchMode;
+			return true;
+		}
     }
 
     /***
 	 * Gets the internal PDO result object
 	 **/
     public function getInternalResult() {
-
+	{
     }
 
 }

@@ -43,7 +43,9 @@ class Reflection {
 	 * @param array reflectionData
 	 **/
     public function __construct($reflectionData  = null ) {
-
+		if ( gettype($reflectionData) == "array" ) {
+			$this->_reflectionData = reflectionData;
+		}
     }
 
     /***
@@ -51,20 +53,68 @@ class Reflection {
 	 **/
     public function getClassAnnotations() {
 
+		$annotations = $this->_classAnnotations;
+		if ( gettype($annotations) != "object" ) {
+			if ( fetch reflectionClass, $this->_reflectionData["class"] ) {
+				$collection = new Collection(reflectionClass),
+					this->_classAnnotations = collection;
+				return collection;
+			}
+			$this->_classAnnotations = false;
+			return false;
+		}
+		return annotations;
     }
 
     /***
 	 * Returns the annotations found in the methods' docblocks
 	 **/
     public function getMethodsAnnotations() {
+			collections, methodName, reflectionMethod;
 
+		$annotations = $this->_methodAnnotations;
+		if ( gettype($annotations) != "object" ) {
+
+			if ( fetch reflectionMethods, $this->_reflectionData["methods"] ) {
+				if ( count(reflectionMethods) ) {
+					$collections = [];
+					foreach ( methodName, $reflectionMethods as $reflectionMethod ) {
+						$collections[methodName] = new Collection(reflectionMethod);
+					}
+					$this->_methodAnnotations = collections;
+					return collections;
+				}
+			}
+
+			$this->_methodAnnotations = false;
+			return false;
+		}
+		return annotations;
     }
 
     /***
 	 * Returns the annotations found in the properties' docblocks
 	 **/
     public function getPropertiesAnnotations() {
+			collections, property, reflectionProperty;
 
+		$annotations = $this->_propertyAnnotations;
+		if ( gettype($annotations) != "object" ) {
+			if ( fetch reflectionProperties, $this->_reflectionData["properties"] ) {
+				if ( count(reflectionProperties) ) {
+					$collections = [];
+					foreach ( property, $reflectionProperties as $reflectionProperty ) {
+						$collections[property] = new Collection(reflectionProperty);
+					}
+					$this->_propertyAnnotations = collections;
+					return collections;
+				}
+			}
+			$this->_propertyAnnotations = false;
+			return false;
+		}
+
+		return annotations;
     }
 
     /***
@@ -73,7 +123,7 @@ class Reflection {
 	 * @return array
 	 **/
     public function getReflectionData() {
-
+		return $this->_reflectionData;
     }
 
     /***
@@ -83,6 +133,16 @@ class Reflection {
 	 **/
     public static function __set_state($data ) {
 
+		if ( gettype($data) == "array" ) {
+			/**
+			 * Check for ( a '_reflectionData' in the array to build the Reflection
+			 */
+			if ( fetch reflectionData, data["_reflectionData"] ) {
+				return new self(reflectionData);
+			}
+		}
+
+		return new self();
     }
 
 }

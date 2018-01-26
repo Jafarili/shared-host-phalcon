@@ -34,7 +34,7 @@ class Memory extends MetaData {
 	 * @return array
 	 **/
     public function read($key ) {
-
+		return null;
     }
 
     /***

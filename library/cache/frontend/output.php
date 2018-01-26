@@ -71,28 +71,35 @@ class Output {
 	 * @param array frontendOptions
 	 **/
     public function __construct($frontendOptions  = null ) {
-
+		$this->_frontendOptions = frontendOptions;
     }
 
     /***
 	 * Returns the cache lifetime
 	 **/
     public function getLifetime() {
-
+		$options = $this->_frontendOptions;
+		if ( gettype($options) == "array" ) {
+			if ( fetch lif (etime, options["lif (etime"] ) {
+				return lif (etime;
+			}
+		}
+		return 1;
     }
 
     /***
 	 * Check whether if frontend is buffering output
 	 **/
     public function isBuffering() {
-
+		return $this->_buffering;
     }
 
     /***
 	 * Starts output frontend. Currently, does nothing
 	 **/
     public function start() {
-
+		$this->_buffering = true;
+		ob_start();
     }
 
     /***
@@ -101,28 +108,36 @@ class Output {
 	 * @return string
 	 **/
     public function getContent() {
+		if ( $this->_buffering ) {
+			return ob_get_contents();
+		}
 
+		return null;
     }
 
     /***
 	 * Stops output frontend
 	 **/
     public function stop() {
+		if ( $this->_buffering ) {
+			ob_end_clean();
+		}
 
+		$this->_buffering = false;
     }
 
     /***
 	 * Serializes data before storing them
 	 **/
     public function beforeStore($data ) {
-
+		return data;
     }
 
     /***
 	 * Unserializes data after retrieval
 	 **/
     public function afterRetrieve($data ) {
-
+		return data;
     }
 
 }

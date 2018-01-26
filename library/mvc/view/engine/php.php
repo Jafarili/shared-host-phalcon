@@ -19,6 +19,27 @@ class Php extends Engine {
 	 **/
     public function render($path , $params , $mustClean  = false ) {
 
+		if ( mustClean === true ) {
+			ob_clean();
+		}
+
+		/**
+		 * Create the variables in local symbol table
+		 */
+		if ( gettype($params) == "array" ) {
+			foreach ( key, $params as $value ) {
+				${key} = value;
+			}
+		}
+
+		/**
+		 * Require the file
+		 */
+		require path;
+
+		if ( mustClean === true ) {
+			this->_view->setContent(ob_get_contents());
+		}
     }
 
 }

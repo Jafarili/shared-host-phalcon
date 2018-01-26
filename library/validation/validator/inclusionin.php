@@ -58,6 +58,57 @@ class InclusionIn extends Validator {
 	 **/
     public function validate($validation , $field ) {
 
+		$value = validation->getValue(field);
+
+		/**
+		 * A domain is an array with a list of valid values
+		 */
+		$domain = $this->getOption("domain");
+		if ( fetch fieldDomain, domain[field] ) {
+			if ( gettype($fieldDomain) == "array" ) {
+				$domain = fieldDomain;
+			}
+		}
+		if ( gettype($domain) != "array" ) {
+			throw new Exception("Option 'domain' must be an array");
+		}
+
+		$strict = false;
+		if ( $this->hasOption("strict") ) {
+			$strict = $this->getOption("strict");
+
+			if ( gettype($strict) == "array" ) {
+				$strict = strict[field];
+			}
+
+			if ( gettype($strict) != "boolean" ) {
+			    throw new Exception("Option 'strict' must be a boolean");
+			}
+		}
+
+		/**
+		 * Check if ( the value is contained by the array
+		 */
+		if ( !in_array(value, domain, strict) ) {
+			$label = $this->prepareLabel(validation, field),
+				message = $this->prepareMessage(validation, field, "InclusionIn"),
+				code = $this->prepareCode(field);
+
+			$replacePairs = [":field": label, ":domain":  join(", ", domain)];
+
+			validation->appendMessage(
+				new Message(
+					strtr(message, replacePairs),
+					field,
+					"InclusionIn",
+					code
+				)
+			);
+
+			return false;
+		}
+
+		return true;
     }
 
 }

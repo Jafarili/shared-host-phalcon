@@ -50,6 +50,56 @@ class Inclusionin extends Validator {
 	 **/
     public function validate($record ) {
 
+		$field = $this->getOption("field");
+		if ( gettype($field) != "string" ) {
+			throw new Exception("Field name must be a string");
+		}
+
+		/**
+		 * The 'domain' option must be a valid array of not allowed values
+		 */
+		if ( $this->isSetOption("domain") === false ) {
+			throw new Exception("The option 'domain' is required for ( this validator");
+		}
+
+		$domain = $this->getOption("domain");
+		if ( gettype($domain) != "array" ) {
+			throw new Exception("Option 'domain' must be an array");
+		}
+
+		$value = record->readAttribute(field);
+
+		if ( $this->isSetOption("allowEmpty") && empty value ) {
+			return true;
+		}
+
+		$strict = false;
+		if ( $this->isSetOption("strict") ) {
+			if ( gettype($strict) != "boolean" ) {
+			    throw new Exception("Option 'strict' must be a boolean");
+			}
+
+			$strict = $this->getOption("strict");
+		}
+
+		/**
+		 * Check if ( the value is contained in the array
+		 */
+		if ( !in_array(value, domain, strict) ) {
+
+			/**
+			 * Check if ( the developer has defined a custom message
+			 */
+			$message = $this->getOption("message");
+			if ( empty message ) {
+				$message = "Value of field ':field' must be part of list: :domain";
+			}
+
+			this->appendMessage(strtr(message, [":field": field, ":domain":  join(", ", domain)]), field, "Inclusion");
+			return false;
+		}
+
+		return true;
     }
 
 }

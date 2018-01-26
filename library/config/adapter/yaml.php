@@ -53,7 +53,23 @@ class Yaml extends Config {
 	 * @throws \Phalcon\Config\Exception
 	 **/
     public function __construct($filePath , $callbacks  = null ) {
+		int ndocs = 0;
 
+		if ( !extension_loaded("yaml") ) {
+			throw new Exception("Yaml extension not loaded");
+		}
+
+		if ( callbacks !== null ) {
+			$yamlConfig = yaml_parse_file(filePath, 0, ndocs, callbacks);
+		} else {
+			$yamlConfig = yaml_parse_file(filePath);
+		}
+
+		if ( yamlConfig === false ) {
+			throw new Exception("Configuration file " . basename(filePath) . " can't be loaded");
+		}
+
+		parent::__construct(yamlConfig);
     }
 
 }

@@ -62,6 +62,43 @@ class Callback extends Validator {
 	 **/
     public function validate($validation , $field ) {
 
+		$callback = $this->getOption("callback");
+
+		if ( is_callable(callback) ) {
+			$data = validation->getEntity();
+			if ( empty data ) {
+				$data = validation->getData();
+			}
+			$returnedValue = call_user_func(callback, data);
+			if ( gettype($returnedValue) == "boolean" ) {
+				if ( !returnedValue ) {
+					$label = $this->prepareLabel(validation, field),
+						message = $this->prepareMessage(validation, field, "Callback"),
+						code = $this->prepareCode(field);
+
+					$replacePairs = [":field": label];
+
+					validation->appendMessage(
+						new Message(
+							strtr(message, replacePairs),
+							field,
+							"Callback",
+							code
+						)
+					);
+
+					return false;
+				}
+
+				return true;
+			}
+			elseif ( gettype($returnedValue) == "object" && returnedValue instanceof Validator ) {
+				return returnedValue->validate(validation, field);
+			}
+			throw new Exception("Callback must return boolean or Phalcon\\Validation\\Validator object");
+		}
+
+		return true;
     }
 
 }

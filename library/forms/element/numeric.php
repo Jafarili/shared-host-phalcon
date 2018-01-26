@@ -21,7 +21,7 @@ class Numeric extends Element {
 	 * @param array $attributes
 	 **/
     public function render($attributes  = null ) {
-
+		return Tag::numericField(this->prepareAttributes(attributes));
     }
 
 }

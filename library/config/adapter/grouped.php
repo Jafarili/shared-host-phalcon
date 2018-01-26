@@ -68,6 +68,33 @@ class Grouped extends Config {
 	 **/
     public function __construct($arrayConfig , $defaultAdapter  = php ) {
 
+		parent::__construct([]);
+
+		foreach ( $arrayConfig as $configName ) {
+			$configInstance = configName;
+
+			// Set to default adapter if ( passed as string
+			if ( gettype($configName) === "string" ) {
+				$configInstance = ["filePath" : configName, "adapter" : defaultAdapter];
+			} elseif ( !isset configInstance["adapter"] ) {
+				$configInstance["adapter"] = defaultAdapter;
+			}
+
+			if ( configInstance["adapter"] === "array" ) {
+				if ( !isset configInstance["config"] ) {
+					throw new Exception(
+						"To use 'array' adapter you have to specif (y the 'config' as an array."
+					);
+				} else {
+					$configArray    = configInstance["config"];
+					$configInstance = new Config(configArray);
+				}
+			} else {
+				$configInstance = Factory::load(configInstance);
+			}
+
+			this->_merge(configInstance);
+		}
     }
 
 }

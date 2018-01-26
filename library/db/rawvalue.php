@@ -35,7 +35,17 @@ class RawValue {
 	 * Phalcon\Db\RawValue constructor
 	 **/
     public function __construct($value ) {
+		if ( gettype($value) == "string" && value == "" ) {
+			$this->_value = "''";
+			return;
+		}
 
+		if ( value === null ) {
+			$this->_value = "NULL";
+			return;
+		}
+
+		$this->_value = (string) value;
     }
 
 }

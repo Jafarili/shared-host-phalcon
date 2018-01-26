@@ -21,7 +21,7 @@ class Email extends Element {
 	 * @param array attributes
 	 **/
     public function render($attributes  = null ) {
-
+		return Tag::emailField(this->prepareAttributes(attributes));
     }
 
 }

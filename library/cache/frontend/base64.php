@@ -62,21 +62,27 @@ class Base64 {
 	 * @param array frontendOptions
 	 **/
     public function __construct($frontendOptions  = null ) {
-
+		$this->_frontendOptions = frontendOptions;
     }
 
     /***
 	 * Returns the cache lifetime
 	 **/
     public function getLifetime() {
-
+		$options = $this->_frontendOptions;
+		if ( gettype($options) == "array" ) {
+			if ( fetch lif (etime, options["lif (etime"] ) {
+				return lif (etime;
+			}
+		}
+		return 1;
     }
 
     /***
 	 * Check whether if frontend is buffering output
 	 **/
     public function isBuffering() {
-
+		return false;
     }
 
     /***
@@ -92,7 +98,7 @@ class Base64 {
 	 * @return string
 	 **/
     public function getContent() {
-
+		return null;
     }
 
     /***
@@ -106,14 +112,14 @@ class Base64 {
 	 * Serializes data before storing them
 	 **/
     public function beforeStore($data ) {
-
+		return base64_encode(data);
     }
 
     /***
 	 * Unserializes data after retrieval
 	 **/
     public function afterRetrieve($data ) {
-
+		return base64_decode(data);
     }
 
 }

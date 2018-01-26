@@ -34,28 +34,36 @@ class Inline {
 	 * @param array attributes
 	 **/
     public function __construct($type , $content , $filter  = true , $attributes  = null ) {
-
+		$this->_type = type,
+			this->_content = content,
+			this->_filter = filter;
+		if ( gettype($attributes) == "array" ) {
+			$this->_attributes = attributes;
+		}
     }
 
     /***
 	 * Sets the inline's type
 	 **/
     public function setType($type ) {
-
+		$this->_type = type;
+		return this;
     }
 
     /***
 	 * Sets if the resource must be filtered or not
 	 **/
     public function setFilter($filter ) {
-
+		$this->_filter = filter;
+		return this;
     }
 
     /***
 	 * Sets extra HTML attributes
 	 **/
     public function setAttributes($attributes ) {
-
+		$this->_attributes = attributes;
+		return this;
     }
 
     /***
@@ -63,6 +71,9 @@ class Inline {
 	 **/
     public function getResourceKey() {
 
+		$key = $this->getType() . ":" . $this->getContent();
+
+		return md5(key);
     }
 
 }

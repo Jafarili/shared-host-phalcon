@@ -77,35 +77,131 @@ abstract class MetaData {
 	 * Initialize the metadata for certain table
 	 **/
     protected final function _initialize($model , $key , $table , $schema ) {
+			dependencyInjector, keyName, prefixKey;
 
+		$strategy = null,
+			className = get_class(model);
+
+		if ( key !== null ) {
+
+			$metaData = $this->_metaData;
+			if ( !isset($metaData[key]) ) {
+
+				/**
+				 * The meta-data is read from the adapter always if ( not available in _metaData property
+				 */
+				$prefixKey = "meta-" . key,
+					data = $this->{"read"}(prefixKey);
+				if ( data !== null ) {
+					$this->_metaData[key] = data;
+				} else {
+
+					/**
+					 * Check if ( there is a method 'metaData' in the model to retrieve meta-data from it
+					 */
+					if ( method_exists(model, "metaData") ) {
+						$modelMetadata = model->{"metaData"}();
+						if ( gettype($modelMetadata) != "array" ) {
+							throw new Exception("Invalid meta-data for ( model " . className);
+						}
+					} else {
+
+						/**
+						 * Get the meta-data extraction strategy
+						 */
+						$dependencyInjector = $this->_dependencyInjector,
+							strategy = $this->getStrategy(),
+							modelMetadata = strategy->getMetaData(model, dependencyInjector);
+					}
+
+					/**
+					 * Store the meta-data locally
+					 */
+					$this->_metaData[key] = modelMetadata;
+
+					/**
+					 * Store the meta-data in the adapter
+					 */
+					this->{"write"}(prefixKey, modelMetadata);
+				}
+			}
+		}
+
+		/**
+		 * Check foreach ( a column map, $_columnMap as $store in order and reversed order
+		 */
+		if ( !globals_get("orm.column_renaming") ) {
+			return null;
+		}
+
+		$keyName = strtolower(className);
+		if ( isset($this->_columnMap[keyName]) ) {
+			return null;
+		}
+
+		/**
+		 * Create the map key name
+		 * Check if ( the meta-data is already in the adapter
+		 */
+		$prefixKey = "map-" . keyName,
+			data = $this->{"read"}(prefixKey);
+
+		if ( data !== null ) {
+			$this->_columnMap[keyName] = data;
+			return null;
+		}
+
+		/**
+		 * Get the meta-data extraction strategy
+		 */
+		if ( gettype($strategy) != "object" ) {
+			$dependencyInjector = $this->_dependencyInjector,
+				strategy = $this->getStrategy();
+		}
+
+		/**
+		 * Get the meta-data
+		 * Update the column map locally
+		 */
+		$modelColumnMap = strategy->getColumnMaps(model, dependencyInjector),
+			this->_columnMap[keyName] = modelColumnMap;
+
+		/**
+		 * Write the data to the adapter
+		 */
+		this->{"write"}(prefixKey, modelColumnMap);
     }
 
     /***
 	 * Sets the DependencyInjector container
 	 **/
     public function setDI($dependencyInjector ) {
-
+		$this->_dependencyInjector = dependencyInjector;
     }
 
     /***
 	 * Returns the DependencyInjector container
 	 **/
     public function getDI() {
-
+		return $this->_dependencyInjector;
     }
 
     /***
 	 * Set the meta-data extraction strategy
 	 **/
     public function setStrategy($strategy ) {
-
+		$this->_strategy = strategy;
     }
 
     /***
 	 * Return the strategy to obtain the meta-data
 	 **/
     public function getStrategy() {
+		if ( gettype($this->_strategy) == "null" ) {
+			$this->_strategy = new Introspection();
+		}
 
+		return $this->_strategy;
     }
 
     /***
@@ -121,6 +217,18 @@ abstract class MetaData {
 	 **/
     public final function readMetaData($model ) {
 
+		$source = model->getSource(),
+			schema = model->getSchema();
+
+		/*
+		 * Unique key for ( meta-data is created using class-name-schema-source
+		 */
+		$key = get_class_lower(model) . "-" . schema . source;
+		if ( !isset($this->_metaData[key]) ) {
+			this->_initialize(model, key, source, schema);
+		}
+
+		return $this->_metaData[key];
     }
 
     /***
@@ -137,6 +245,19 @@ abstract class MetaData {
 	 **/
     public final function readMetaDataIndex($model , $index ) {
 
+		$source = model->getSource(),
+			schema = model->getSchema();
+
+		/*
+		 * Unique key for ( meta-data is created using class-name-schema-source
+		 */
+		$key = get_class_lower(model) . "-" . schema . source;
+
+		if ( !isset($this->_metaData[key][index]) ) {
+			this->_initialize(model, key, source, schema);
+		}
+
+		return $this->_metaData[key][index];
     }
 
     /***
@@ -156,6 +277,23 @@ abstract class MetaData {
 	 **/
     public final function writeMetaDataIndex($model , $index , $data ) {
 
+		if ( gettype($data) != "array" && gettype($data) != "string" && gettype($data) != "boolean" ) {
+			throw new Exception("Invalid data for ( index");
+		}
+
+		$source = model->getSource(),
+			schema = model->getSchema();
+
+		/*
+		 * Unique key for ( meta-data is created using class-name-schema-table
+		 */
+		$key = get_class_lower(model) . "-" . schema . source;
+
+		if ( !isset($this->_metaData[key]) ) {
+			this->_initialize(model, key, source, schema);
+		}
+
+		$this->_metaData[key][index] = data;
     }
 
     /***
@@ -171,6 +309,17 @@ abstract class MetaData {
 	 **/
     public final function readColumnMap($model ) {
 
+		if ( !globals_get("orm.column_renaming") ) {
+			return null;
+		}
+
+		$keyName = get_class_lower(model);
+		if ( !fetch data, $this->_columnMap[keyName] ) {
+			this->_initialize(model, null, null, null);
+			$data = $this->_columnMap[keyName];
+		}
+
+		return data;
     }
 
     /***
@@ -187,6 +336,19 @@ abstract class MetaData {
 	 **/
     public final function readColumnMapIndex($model , $index ) {
 
+		if ( !globals_get("orm.column_renaming") ) {
+			return null;
+		}
+
+		$keyName = get_class_lower(model);
+
+		if ( !fetch columnMapModel, $this->_columnMap[keyName] ) {
+			this->_initialize(model, null, null, null);
+			$columnMapModel = $this->_columnMap[keyName];
+		}
+
+
+		return map;
     }
 
     /***
@@ -201,7 +363,11 @@ abstract class MetaData {
 	 *</code>
 	 **/
     public function getAttributes($model ) {
-
+		$data = $this->readMetaDataIndex(model, self::MODELS_ATTRIBUTES);
+		if ( gettype($data) != "array" ) {
+			throw new Exception("The meta-data is invalid or is corrupt");
+		}
+		return data;
     }
 
     /***
@@ -216,7 +382,11 @@ abstract class MetaData {
 	 *</code>
 	 **/
     public function getPrimaryKeyAttributes($model ) {
-
+		$data = $this->readMetaDataIndex(model, self::MODELS_PRIMARY_KEY);
+		if ( gettype($data) != "array" ) {
+			throw new Exception("The meta-data is invalid or is corrupt");
+		}
+		return data;
     }
 
     /***
@@ -231,7 +401,11 @@ abstract class MetaData {
 	 *</code>
 	 **/
     public function getNonPrimaryKeyAttributes($model ) {
-
+		$data = $this->readMetaDataIndex(model, self::MODELS_NON_PRIMARY_KEY);
+		if ( gettype($data) != "array" ) {
+			throw new Exception("The meta-data is invalid or is corrupt");
+		}
+		return data;
     }
 
     /***
@@ -246,7 +420,11 @@ abstract class MetaData {
 	 *</code>
 	 **/
     public function getNotNullAttributes($model ) {
-
+		$data = $this->readMetaDataIndex(model, self::MODELS_NOT_NULL);
+		if ( gettype($data) != "array" ) {
+			throw new Exception("The meta-data is invalid or is corrupt");
+		}
+		return data;
     }
 
     /***
@@ -261,7 +439,11 @@ abstract class MetaData {
 	 *</code>
 	 **/
     public function getDataTypes($model ) {
-
+		$data = $this->readMetaDataIndex(model, self::MODELS_DATA_TYPES);
+		if ( gettype($data) != "array" ) {
+			throw new Exception("The meta-data is invalid or is corrupt");
+		}
+		return data;
     }
 
     /***
@@ -276,7 +458,11 @@ abstract class MetaData {
 	 *</code>
 	 **/
     public function getDataTypesNumeric($model ) {
-
+		$data = $this->readMetaDataIndex(model, self::MODELS_DATA_TYPES_NUMERIC);
+		if ( gettype($data) != "array" ) {
+			throw new Exception("The meta-data is invalid or is corrupt");
+		}
+		return data;
     }
 
     /***
@@ -294,7 +480,7 @@ abstract class MetaData {
 	 * @return string
 	 **/
     public function getIdentityField($model ) {
-
+		return $this->readMetaDataIndex(model, self::MODELS_IDENTITY_COLUMN);
     }
 
     /***
@@ -309,7 +495,11 @@ abstract class MetaData {
 	 *</code>
 	 **/
     public function getBindTypes($model ) {
-
+		$data = $this->readMetaDataIndex(model, self::MODELS_DATA_TYPES_BIND);
+		if ( gettype($data) != "array" ) {
+			throw new Exception("The meta-data is invalid or is corrupt");
+		}
+		return data;
     }
 
     /***
@@ -324,7 +514,11 @@ abstract class MetaData {
 	 *</code>
 	 **/
     public function getAutomaticCreateAttributes($model ) {
-
+		$data = $this->readMetaDataIndex(model, self::MODELS_AUTOMATIC_DEFAULT_INSERT);
+		if ( gettype($data) != "array" ) {
+			throw new Exception("The meta-data is invalid or is corrupt");
+		}
+		return data;
     }
 
     /***
@@ -339,7 +533,11 @@ abstract class MetaData {
 	 *</code>
 	 **/
     public function getAutomaticUpdateAttributes($model ) {
-
+		$data = $this->readMetaDataIndex(model, self::MODELS_AUTOMATIC_DEFAULT_UPDATE);
+		if ( gettype($data) != "array" ) {
+			throw new Exception("The meta-data is invalid or is corrupt");
+		}
+		return data;
     }
 
     /***
@@ -355,7 +553,7 @@ abstract class MetaData {
 	 *</code>
 	 **/
     public function setAutomaticCreateAttributes($model , $attributes ) {
-
+		this->writeMetaDataIndex(model, self::MODELS_AUTOMATIC_DEFAULT_INSERT, attributes);
     }
 
     /***
@@ -371,7 +569,7 @@ abstract class MetaData {
 	 *</code>
 	 **/
     public function setAutomaticUpdateAttributes($model , $attributes ) {
-
+		this->writeMetaDataIndex(model, self::MODELS_AUTOMATIC_DEFAULT_UPDATE, attributes);
     }
 
     /***
@@ -387,7 +585,7 @@ abstract class MetaData {
 	 *</code>
 	 **/
     public function setEmptyStringAttributes($model , $attributes ) {
-
+		this->writeMetaDataIndex(model, self::MODELS_EMPTY_STRING_VALUES, attributes);
     }
 
     /***
@@ -402,7 +600,11 @@ abstract class MetaData {
 	 *</code>
 	 **/
     public function getEmptyStringAttributes($model ) {
-
+		$data = $this->readMetaDataIndex(model, self::MODELS_EMPTY_STRING_VALUES);
+		if ( gettype($data) != "array" ) {
+			throw new Exception("The meta-data is invalid or is corrupt");
+		}
+		return data;
     }
 
     /***
@@ -417,7 +619,11 @@ abstract class MetaData {
 	 *</code>
 	 **/
     public function getDefaultValues($model ) {
-
+		$data = $this->readMetaDataIndex(model, self::MODELS_DEFAULT_VALUES);
+		if ( gettype($data) != "array" ) {
+			throw new Exception("The meta-data is invalid or is corrupt");
+		}
+		return data;
     }
 
     /***
@@ -433,6 +639,11 @@ abstract class MetaData {
 	 **/
     public function getColumnMap($model ) {
 
+		$data = $this->readColumnMapIndex(model, self::MODELS_COLUMN_MAP);
+		if ( gettype($data) != "null" && gettype($data) != "array" ) {
+			throw new Exception("The meta-data is invalid or is corrupt");
+		}
+		return data;
     }
 
     /***
@@ -448,6 +659,11 @@ abstract class MetaData {
 	 **/
     public function getReverseColumnMap($model ) {
 
+		$data = $this->readColumnMapIndex(model, self::MODELS_REVERSE_COLUMN_MAP);
+		if ( gettype($data) != "null" && gettype($data) != "array" ) {
+			throw new Exception("The meta-data is invalid or is corrupt");
+		}
+		return data;
     }
 
     /***
@@ -464,6 +680,12 @@ abstract class MetaData {
 	 **/
     public function hasAttribute($model , $attribute ) {
 
+		$columnMap = $this->getReverseColumnMap(model);
+		if ( gettype($columnMap) == "array" ) {
+			return isset columnMap[attribute];
+		} else {
+			return isset $this->readMetaData(model)[self::MODELS_DATA_TYPES][attribute];
+		}
     }
 
     /***
@@ -476,7 +698,7 @@ abstract class MetaData {
 	 *</code>
 	 **/
     public function isEmpty() {
-
+		return count(this->_metaData) == 0;
     }
 
     /***
@@ -487,7 +709,8 @@ abstract class MetaData {
 	 *</code>
 	 **/
     public function reset() {
-
+		$this->_metaData = [],
+			this->_columnMap = [];
     }
 
 }

@@ -47,14 +47,14 @@ class Url {
 	 * Sets the DependencyInjector container
 	 **/
     public function setDI($dependencyInjector ) {
-
+		$this->_dependencyInjector = dependencyInjector;
     }
 
     /***
 	 * Returns the DependencyInjector container
 	 **/
     public function getDI() {
-
+		return $this->_dependencyInjector;
     }
 
     /***
@@ -67,7 +67,11 @@ class Url {
 	 *</code>
 	 **/
     public function setBaseUri($baseUri ) {
-
+		$this->_baseUri = baseUri;
+		if ( $this->_staticBaseUri === null ) {
+			$this->_staticBaseUri = baseUri;
+		}
+		return this;
     }
 
     /***
@@ -78,7 +82,8 @@ class Url {
 	 *</code>
 	 **/
     public function setStaticBaseUri($staticBaseUri ) {
-
+		$this->_staticBaseUri = staticBaseUri;
+		return this;
     }
 
     /***
@@ -86,13 +91,35 @@ class Url {
 	 **/
     public function getBaseUri() {
 
+		$baseUri = $this->_baseUri;
+		if ( baseUri === null ) {
+
+			if ( fetch phpSelf, _SERVER["PHP_SELF"] ) {
+				$uri = phalcon_get_uri(phpSelf);
+			} else {
+				$uri = null;
+			}
+
+			if ( !uri ) {
+				$baseUri = "/";
+			} else {
+				$baseUri = "/" . uri ."/";
+			}
+
+			$this->_baseUri = baseUri;
+		}
+		return baseUri;
     }
 
     /***
 	 * Returns the prefix for all the generated static urls. By default /
 	 **/
     public function getStaticBaseUri() {
-
+		$staticBaseUri = $this->_staticBaseUri;
+		if ( staticBaseUri !== null ) {
+			return staticBaseUri;
+		}
+		return $this->getBaseUri();
     }
 
     /***
@@ -103,14 +130,15 @@ class Url {
 	 *</code>
 	 **/
     public function setBasePath($basePath ) {
-
+		$this->_basePath = basePath;
+		return this;
     }
 
     /***
 	 * Returns the base path
 	 **/
     public function getBasePath() {
-
+		return $this->_basePath;
     }
 
     /***
@@ -147,7 +175,85 @@ class Url {
 	 *</code>
 	 **/
     public function get($uri  = null , $args  = null , $local  = null , $baseUri  = null ) {
+		string strUri;
 
+		if ( local == null ) {
+			if ( gettype($uri) == "string" && (memstr(uri, "//") || memstr(uri, ":")) ) {
+				if ( preg_match("#^((//)|([a-z0-9]+://)|([a-z0-9]+:))#i", uri) ) {
+					$local = false;
+				} else {
+					$local = true;
+				}
+			} else {
+				$local = true;
+			}
+		}
+
+		if ( gettype($baseUri) != "string" ) {
+			$baseUri = $this->getBaseUri();
+		}
+
+		if ( gettype($uri) == "array" ) {
+
+			if ( !fetch routeName, uri["for ("] ) ) {
+				throw new Exception("It's necessary to define the route name with the parameter 'for ('");
+			}
+
+			$router = <RouterInterface> $this->_router;
+
+			/**
+			 * Check if ( the router has not previously set
+			 */
+			if ( gettype($router) != "object" ) {
+
+				$dependencyInjector = <DiInterface> $this->_dependencyInjector;
+				if ( gettype($dependencyInjector) != "object" ) {
+					throw new Exception("A dependency injector container is required to obtain the 'router' service");
+				}
+
+				$router = <RouterInterface> dependencyInjector->getShared("router"),
+					this->_router = router;
+			}
+
+			/**
+			 * Every route is uniquely dif (ferenced by a name
+			 */
+			$route = <RouteInterface> router->getRouteByName(routeName);
+			if ( gettype($route) != "object" ) {
+				throw new Exception("Cannot obtain a route using the name '" . routeName . "'");
+			}
+
+			/**
+			 * Replace the patterns by its variables
+			 */
+			$uri = phalcon_replace_paths(route->getPattern(), route->getReversedPaths(), uri);
+		}
+
+		if ( local ) {
+			$strUri = (string) uri;
+			if ( baseUri == "/" && strlen(strUri) > 2 && strUri[0] == '/' && strUri[1] != '/' ) {
+				$uri = baseUri . substr(strUri, 1);
+			} else {
+				if ( baseUri == "/" && strlen(strUri) == 1 && strUri[0] == '/' ) {
+					$uri = baseUri;
+				} else {
+					$uri = baseUri . strUri;
+				}
+			}
+		}
+
+		if ( args ) {
+			$queryString = http_build_query(args);
+			if ( gettype($queryString) == "string" && strlen(queryString) ) {
+				if ( strpos(uri, "?") !== false ) {
+					$uri .= "&" . queryString;
+				} else {
+					$uri .= "?" . queryString;
+				}
+			}
+		}
+
+		return uri;
     }
 
     /***
@@ -166,14 +272,14 @@ class Url {
 	 *</code>
 	 **/
     public function getStatic($uri  = null ) {
-
+		return $this->get(uri, null, null, $this->getStaticBaseUri());
     }
 
     /***
 	 * Generates a local path
 	 **/
     public function path($path  = null ) {
-
+		return $this->_basePath . path;
     }
 
 }

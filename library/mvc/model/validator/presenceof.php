@@ -50,6 +50,30 @@ class PresenceOf extends Validator {
 	 **/
     public function validate($record ) {
 
+		$field = $this->getOption("field");
+		if ( gettype($field) != "string" ) {
+			throw new Exception("Field name must be a string");
+		}
+
+		/**
+		 * A value is null when it is identical to null or an empty string
+		 */
+		$value = record->readAttribute(field);
+		if ( is_null(value) || (is_string(value) && !strlen(value)) ) {
+
+			/**
+			 * Check if ( the developer has defined a custom message
+			 */
+			$message = $this->getOption("message");
+			if ( empty message ) {
+				$message = "':field' is required";
+			}
+
+			this->appendMessage(strtr(message, [":field": field]), field, "PresenceOf");
+			return false;
+		}
+
+		return true;
     }
 
 }

@@ -11,6 +11,13 @@ class AssociativeArray {
 	**/
     public function replacePlaceholders($translation , $placeholders  = null ) {
 
+		if ( gettype($placeholders) === "array" && count(placeholders) ) {
+			foreach ( key, $placeholders as $value ) {
+				$translation = str_replace("%" . key . "%", value, translation);
+			}
+		}
+
+		return translation;
     }
 
 }

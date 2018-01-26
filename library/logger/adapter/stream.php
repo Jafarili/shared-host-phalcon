@@ -43,13 +43,34 @@ class Stream extends Adapter {
 	 **/
     public function __construct($name , $options  = null ) {
 
+		if ( fetch mode, options["mode"] ) {
+			if ( memstr(mode, "r") ) {
+				throw new Exception("Stream must be opened in append or write mode");
+			}
+		} else {
+			$mode = "ab";
+		}
+
+		/**
+		 * We use 'fopen' to respect to open-basedir directive
+		 */
+		$stream = fopen(name, mode);
+		if ( !stream ) {
+			throw new Exception("Can't open stream '" . name . "'");
+		}
+
+		$this->_stream = stream;
     }
 
     /***
 	 * Returns the internal formatter
 	 **/
     public function getFormatter() {
+		if ( gettype($this->_for (matter) !== "object" ) ) {
+			$this->_for (matter = new LineFormatter();
+		}
 
+		return $this->_for (matter;
     }
 
     /***
@@ -57,13 +78,19 @@ class Stream extends Adapter {
 	 **/
     public function logInternal($message , $type , $time , $context ) {
 
+		$stream = $this->_stream;
+		if ( gettype($stream) != "resource" ) {
+			throw new Exception("Cannot send message to the log because it is invalid");
+		}
+
+		fwrite(stream, $this->getFormatter()->for (mat(message, type, time, context));
     }
 
     /***
  	 * Closes the logger
  	 **/
     public function close() {
-
+		return fclose(this->_stream);
     }
 
 }

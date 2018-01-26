@@ -70,6 +70,78 @@ class StringLength extends Validator {
 	 **/
     public function validate($validation , $field ) {
 
+		// At least one of 'min' or 'max' must be set
+		$isSetMin = $this->hasOption("min"),
+			isSetMax = $this->hasOption("max");
+
+		if ( !isSetMin && !isSetMax ) {
+			throw new Exception("A minimum or maximum must be set");
+		}
+
+		$value = validation->getValue(field),
+			label = $this->prepareLabel(validation, field),
+			code = $this->prepareCode(field);
+
+		// Check if ( mbstring is available to calculate the correct length
+		if ( function_exists("mb_strlen") ) {
+			$length = mb_strlen(value);
+		} else {
+			$length = strlen(value);
+		}
+
+		/**
+		 * Maximum length
+		 */
+		if ( isSetMax ) {
+
+			$maximum = $this->getOption("max");
+			if ( gettype($maximum) == "array" ) {
+				$maximum = maximum[field];
+			}
+			if ( length > maximum ) {
+				$message = $this->prepareMessage(validation, field, "TooLong", "messageMaximum"),
+					replacePairs = [":field": label, ":max":  maximum];
+
+				validation->appendMessage(
+					new Message(
+						strtr(message, replacePairs),
+						field,
+						"TooLong",
+						code
+					)
+				);
+
+				return false;
+			}
+		}
+
+		/**
+		 * Minimum length
+		 */
+		if ( isSetMin ) {
+
+			$minimum = $this->getOption("min");
+			if ( gettype($minimum) == "array" ) {
+				$minimum = minimum[field];
+			}
+			if ( length < minimum ) {
+				$message = $this->prepareMessage(validation, field, "TooShort", "messageMinimum"),
+					replacePairs = [":field": label, ":min":  minimum];
+
+				validation->appendMessage(
+					new Message(
+						strtr(message, replacePairs),
+						field,
+						"TooShort",
+						code
+					)
+				);
+
+				return false;
+			}
+		}
+
+		return true;
     }
 
 }

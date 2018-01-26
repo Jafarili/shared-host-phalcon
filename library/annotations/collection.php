@@ -39,20 +39,31 @@ class Collection {
 	 **/
     public function __construct($reflectionData  = null ) {
 
+		if ( gettype($reflectionData) != "null" && gettype($reflectionData) != "array" ) {
+			throw new Exception("Reflection data must be an array");
+		}
+
+		$annotations = [];
+		if ( gettype($reflectionData) == "array" ) {
+			foreach ( $reflectionData as $annotationData ) {
+				$annotations[] = new Annotation(annotationData);
+			}
+		}
+		$this->_annotations = annotations;
     }
 
     /***
 	 * Returns the number of annotations in the collection
 	 **/
     public function count() {
-
+		return count(this->_annotations);
     }
 
     /***
 	 * Rewinds the internal iterator
 	 **/
     public function rewind() {
-
+		$this->_position = 0;
     }
 
     /***
@@ -61,42 +72,54 @@ class Collection {
 	 * @return \Phalcon\Annotations\Annotation
 	 **/
     public function current() {
-
+		if ( fetch annotation, $this->_annotations[this->_position] ) {
+			return annotation;
+		}
+		return false;
     }
 
     /***
 	 * Returns the current position/key in the iterator
 	 **/
     public function key() {
-
+		return $this->_position;
     }
 
     /***
 	 * Moves the internal iteration pointer to the next position
 	 **/
     public function next() {
-
+		$this->_position++;
     }
 
     /***
 	 * Check if the current annotation in the iterator is valid
 	 **/
     public function valid() {
-
+		return isset $this->_annotations[this->_position];
     }
 
     /***
 	 * Returns the internal annotations as an array
 	 **/
     public function getAnnotations() {
-
+		return $this->_annotations;
     }
 
     /***
 	 * Returns the first annotation that match a name
 	 **/
     public function get($name ) {
+		$annotations = $this->_annotations;
+		if ( gettype($annotations) == "array" ) {
+			foreach ( $annotations as $annotation ) {
+				if ( name == annotation->getName() ) {
+					return annotation;
+				}
+			}
+		}
 
+		throw new Exception("Collection doesn't have an annotation called '" . name . "'");
     }
 
     /***
@@ -104,6 +127,17 @@ class Collection {
 	 **/
     public function getAll($name ) {
 
+		$found = [],
+			annotations = $this->_annotations;
+		if ( gettype($annotations) == "array" ) {
+			foreach ( $annotations as $annotation ) {
+				if ( name == annotation->getName() ) {
+					$found[] = annotation;
+				}
+			}
+		}
+
+		return found;
     }
 
     /***
@@ -111,6 +145,15 @@ class Collection {
 	 **/
     public function has($name ) {
 
+		$annotations = $this->_annotations;
+		if ( gettype($annotations) == "array" ) {
+			foreach ( $annotations as $annotation ) {
+				if ( name == annotation->getName() ) {
+					return true;
+				}
+			}
+		}
+		return false;
     }
 
 }

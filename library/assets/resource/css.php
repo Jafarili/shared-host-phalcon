@@ -23,7 +23,7 @@ class Css extends ResourceBase {
 	 * @param array attributes
 	 **/
     public function __construct($path , $local  = true , $filter  = true , $attributes  = null ) {
-
+		parent::__construct("css", path, local, filter, attributes);
     }
 
 }

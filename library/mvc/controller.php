@@ -51,7 +51,9 @@ abstract class Controller extends Injectable {
 	 * Phalcon\Mvc\Controller constructor
 	 **/
     public final function __construct() {
-
+		if ( method_exists(this, "onConstruct") ) {
+			this->{"onConstruct"}();
+		}
     }
 
 }

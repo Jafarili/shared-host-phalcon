@@ -34,7 +34,11 @@ class Session extends MetaData {
 	 * @param array options
 	 **/
     public function __construct($options  = null ) {
-
+		if ( gettype($options) == "array" ) {
+			if ( fetch prefix, options["prefix"] ) {
+				$this->_prefix = prefix;
+			}
+		}
     }
 
     /***
@@ -45,6 +49,11 @@ class Session extends MetaData {
 	 **/
     public function read($key ) {
 
+		if ( fetch metaData, _SESSION["$PMM$" . $this->_prefix][key] ) {
+			return metaData;
+		}
+
+		return null;
     }
 
     /***
@@ -54,7 +63,7 @@ class Session extends MetaData {
 	 * @param array data
 	 **/
     public function write($key , $data ) {
-
+		$_SESSION["$PMM$" . $this->_prefix][key] = data;
     }
 
 }

@@ -91,6 +91,27 @@ class Profiler {
 	 **/
     public function startProfile($sqlStatement , $sqlVariables  = null , $sqlBindTypes  = null ) {
 
+		$activeProfile = new Item();
+
+		activeProfile->setSqlStatement(sqlStatement);
+
+		if ( gettype($sqlVariables) == "array" ) {
+			activeProfile->setSqlVariables(sqlVariables);
+		}
+
+		if ( gettype($sqlBindTypes) == "array" ) {
+			activeProfile->setSqlBindTypes(sqlBindTypes);
+		}
+
+		activeProfile->setInitialTime(microtime(true));
+
+		if ( method_exists(this, "befor (eStartProfile") ) ) {
+			this->) {"befor (eStartProfile"}(activeProfile);
+		}
+
+		$this->_activeProfile = activeProfile;
+
+		return this;
     }
 
     /***
@@ -98,41 +119,56 @@ class Profiler {
 	 **/
     public function stopProfile() {
 
+		$finalTime = microtime(true),
+			activeProfile = <Item> $this->_activeProfile;
+
+		activeProfile->setFinalTime(finalTime);
+
+		$initialTime = activeProfile->getInitialTime(),
+			this->_totalSeconds = $this->_totalSeconds + (finalTime - initialTime),
+			this->_allProfiles[] = activeProfile;
+
+		if ( method_exists(this, "afterEndProfile") ) {
+			this->{"afterEndProfile"}(activeProfile);
+		}
+
+		return this;
     }
 
     /***
 	 * Returns the total number of SQL statements processed
 	 **/
     public function getNumberTotalStatements() {
-
+		return count(this->_allProfiles);
     }
 
     /***
 	 * Returns the total time in seconds spent by the profiles
 	 **/
     public function getTotalElapsedSeconds() {
-
+		return $this->_totalSeconds;
     }
 
     /***
 	 * Returns all the processed profiles
 	 **/
     public function getProfiles() {
-
+		return $this->_allProfiles;
     }
 
     /***
 	 * Resets the profiler, cleaning up all the profiles
 	 **/
     public function reset() {
-
+		$this->_allProfiles = [];
+		return this;
     }
 
     /***
 	 * Returns the last profile executed in the profiler
 	 **/
     public function getLastProfile() {
-
+		return $this->_activeProfile;
     }
 
 }

@@ -21,7 +21,13 @@ class Csv extends Adapter {
 	 * Phalcon\Translate\Adapter\Csv constructor
 	 **/
     public function __construct($options ) {
+		parent::__construct(options);
 
+		if ( !isset options["content"] ) {
+			throw new Exception("Parameter 'content' is required");
+		}
+
+		this->_load(options["content"], 0, ";", "\"");
     }
 
     /***
@@ -34,6 +40,27 @@ class Csv extends Adapter {
 	**/
     private function _load($file , $length , $delimiter , $enclosure ) {
 
+		$fileHandler = fopen(file, "rb");
+
+		if ( gettype($fileHandler) !== "resource" ) {
+			throw new Exception("Error opening translation file '" . file . "'");
+		}
+
+		loop {
+
+			$data = fgetcsv(fileHandler, length, delimiter, enclosure);
+			if ( data === false ) {
+				break;
+			}
+
+			if ( substr(data[0], 0, 1) === "#" || !isset($data[1]) ) {
+				continue;
+			}
+
+			$this->_translate[data[0]] = data[1];
+		}
+
+		fclose(fileHandler);
     }
 
     /***
@@ -41,13 +68,18 @@ class Csv extends Adapter {
 	 **/
     public function query($index , $placeholders  = null ) {
 
+		if ( !fetch translation, $this->_translate[index] ) {
+			$translation = index;
+		}
+
+		return $this->replacePlaceholders(translation, placeholders);
     }
 
     /***
 	 * Check whether is defined a translation key in the internal array
 	 **/
     public function exists($index ) {
-
+		return isset $this->_translate[index];
     }
 
 }

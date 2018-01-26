@@ -22,7 +22,10 @@ class Css extends InlineBase {
 	 * @param array attributes
 	 **/
     public function __construct($content , $filter  = true , $attributes  = null ) {
-
+		if ( attributes == null ) {
+			$attributes = ["type": "text/css"];
+		}
+		parent::__construct("css", content, filter, attributes);
     }
 
 }

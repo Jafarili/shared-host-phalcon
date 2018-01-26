@@ -21,7 +21,7 @@ class Submit extends Element {
 	 * @param array attributes
 	 **/
     public function render($attributes  = null ) {
-
+		return Tag::submitButton(this->prepareAttributes(attributes));
     }
 
 }

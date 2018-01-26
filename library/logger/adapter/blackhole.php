@@ -20,7 +20,11 @@ class Blackhole extends Adapter {
 	 * Returns the internal formatter
 	 **/
     public function getFormatter() {
+		if ( gettype($this->_for (matter) !== "object" ) ) {
+			$this->_for (matter = new Line();
+		}
 
+		return $this->_for (matter;
     }
 
     /***

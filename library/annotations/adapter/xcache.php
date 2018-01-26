@@ -26,14 +26,21 @@ class Xcache extends Adapter {
 	 * @return \Phalcon\Annotations\Reflection
 	 **/
     public function read($key ) {
-
+		$serialized = xcache_get(strtolower("_PHAN" . key));
+		if ( gettype($serialized) == "string" ) {
+			$data = unserialize(serialized);
+			if ( gettype($data) == "object" ) {
+				return data;
+			}
+		}
+		return false;
     }
 
     /***
 	 * Writes parsed annotations to XCache
 	 **/
     public function write($key , $data ) {
-
+		xcache_set(strtolower("_PHAN" . key), serialize(data));
     }
 
 }

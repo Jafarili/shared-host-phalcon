@@ -23,7 +23,7 @@ class Js extends ResourceBase {
 	 * @param array attributes
 	 **/
     public function __construct($path , $local  = true , $filter  = true , $attributes  = null ) {
-
+		parent::__construct("js", path, local, filter, attributes);
     }
 
 }

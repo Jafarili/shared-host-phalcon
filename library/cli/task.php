@@ -37,7 +37,9 @@ class Task extends Injectable {
 	 * Phalcon\Cli\Task constructor
 	 **/
     public final function __construct() {
-
+		if ( method_exists(this, "onConstruct") ) {
+			this->{"onConstruct"}();
+		}
     }
 
 }

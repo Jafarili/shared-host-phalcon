@@ -21,7 +21,7 @@ class File extends Element {
 	 * @param array attributes
 	 **/
     public function render($attributes  = null ) {
-
+		return Tag::fileField(this->prepareAttributes(attributes));
     }
 
 }

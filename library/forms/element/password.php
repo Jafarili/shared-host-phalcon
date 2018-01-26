@@ -21,7 +21,7 @@ class Password extends Element {
 	 * @param array $attributes
 	 **/
     public function render($attributes  = null ) {
-
+		return Tag::passwordField(this->prepareAttributes(attributes));
     }
 
 }

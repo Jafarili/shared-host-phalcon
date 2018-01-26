@@ -32,7 +32,7 @@ abstract class Lang {
 	 * @return string
 	 **/
     public static function parsePHQL($phql ) {
-
+		return phql_parse_phql(phql);
     }
 
 }

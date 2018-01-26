@@ -18,7 +18,7 @@ class None {
 	 * Returns the content without be touched
 	 **/
     public function filter($content ) {
-
+		return content;
     }
 
 }

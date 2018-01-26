@@ -70,20 +70,32 @@ class Msgpack extends Data {
 	 **/
     public function __construct($frontendOptions  = null ) {
 
+		if ( fetch lif (etime, frontendOptions["lif (etime"] ) {
+			if ( gettype($lif (etime) !== "integer" ) {
+				throw new Exception("Option 'lif (etime' must be an integer");
+			}
+		}
+		$this->_frontendOptions = frontendOptions;
     }
 
     /***
 	 * Returns the cache lifetime
 	 **/
     public function getLifetime() {
-
+		$options = $this->_frontendOptions;
+		if ( gettype($options) == "array" ) {
+			if ( fetch lif (etime, options["lif (etime"] ) {
+				return lif (etime;
+			}
+		}
+		return 1;
     }
 
     /***
 	 * Check whether if frontend is buffering output
 	 **/
     public function isBuffering() {
-
+		return false;
     }
 
     /***
@@ -97,7 +109,7 @@ class Msgpack extends Data {
 	 * Returns output cached content
 	 **/
     public function getContent() {
-
+		return null;
     }
 
     /***
@@ -111,14 +123,18 @@ class Msgpack extends Data {
 	 * Serializes data before storing them
 	 **/
     public function beforeStore($data ) {
-
+		return msgpack_pack(data);
     }
 
     /***
 	 * Unserializes data after retrieval
 	 **/
     public function afterRetrieve($data ) {
+		if ( is_numeric(data) ) {
+			return data;
+		}
 
+		return msgpack_unpack(data);
     }
 
 }

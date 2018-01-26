@@ -42,14 +42,14 @@ class Escaper {
 	 *</code>
 	 **/
     public function setEncoding($encoding ) {
-
+		$this->_encoding = encoding;
     }
 
     /***
 	 * Returns the internal encoding used by the escaper
 	 **/
     public function getEncoding() {
-
+		return $this->_encoding;
     }
 
     /***
@@ -60,7 +60,7 @@ class Escaper {
 	 *</code>
 	 **/
     public function setHtmlQuoteType($quoteType ) {
-
+		$this->_htmlQuoteType = quoteType;
     }
 
     /***
@@ -71,7 +71,7 @@ class Escaper {
 	 *</code>
 	 **/
     public function setDoubleEncode($doubleEncode ) {
-
+		$this->_doubleEncode = doubleEncode;
     }
 
     /***
@@ -80,48 +80,85 @@ class Escaper {
 	 **/
     public final function detectEncoding($str ) {
 
+		/**
+		* Check if ( charset is ASCII or ISO-8859-1
+		*/
+		$charset = phalcon_is_basic_charset(str);
+		if ( gettype($charset) == "string" ) {
+			return charset;
+		}
+
+		/**
+		* We require mbstring extension here
+		*/
+		if ( !function_exists("mb_detect_encoding") ) {
+			return null;
+		}
+
+		/**
+		 * Strict encoding detection with fallback to non-strict detection.
+		 * Check encoding
+		 */
+		for ( charset in ["UTF-32", "UTF-8", "ISO-8859-1", "ASCII"] ) {
+			if ( mb_detect_encoding(str, charset, true) ) {
+				return charset;
+			}
+		}
+
+		/**
+		 * Fallback to global detection
+		 */
+		return mb_detect_encoding(str);
     }
 
     /***
 	 * Utility to normalize a string's encoding to UTF-32.
 	 **/
     public final function normalizeEncoding($str ) {
+		if ( !function_exists("mb_convert_encoding") ) {
+			throw new Exception("Extension 'mbstring' is required");
+		}
 
+		/**
+		 * Convert to UTF-32 (4 byte characters, regardless of actual number of bytes in
+		 * the character).
+		 */
+		return mb_convert_encoding(str, "UTF-32", $this->detectEncoding(str));
     }
 
     /***
 	 * Escapes a HTML string. Internally uses htmlspecialchars
 	 **/
     public function escapeHtml($text ) {
-
+		return htmlspecialchars(text, $this->_htmlQuoteType, $this->_encoding, $this->_doubleEncode);
     }
 
     /***
 	 * Escapes a HTML attribute string
 	 **/
     public function escapeHtmlAttr($attribute ) {
-
+		return htmlspecialchars(attribute, ENT_QUOTES, $this->_encoding, $this->_doubleEncode);
     }
 
     /***
 	 * Escape CSS strings by replacing non-alphanumeric chars by their hexadecimal escaped representation
 	 **/
     public function escapeCss($css ) {
-
+		return phalcon_escape_css(this->normalizeEncoding(css));
     }
 
     /***
 	 * Escape javascript strings by replacing non-alphanumeric chars by their hexadecimal escaped representation
 	 **/
     public function escapeJs($js ) {
-
+		return phalcon_escape_js(this->normalizeEncoding(js));
     }
 
     /***
 	 * Escapes a URL. Internally uses rawurlencode
 	 **/
     public function escapeUrl($url ) {
-
+		return rawurlencode(url);
     }
 
 }

@@ -49,7 +49,8 @@ abstract class Pdo extends Adapter {
 	 * Constructor for Phalcon\Db\Adapter\Pdo
 	 **/
     public function __construct($descriptor ) {
-
+		this->connect(descriptor);
+		parent::__construct(descriptor);
     }
 
     /***
@@ -76,7 +77,85 @@ abstract class Pdo extends Adapter {
 	 * </code>
 	 **/
     public function connect($descriptor  = null ) {
+			persistent, options, key, value;
 
+		if ( empty descriptor ) {
+			$descriptor = (array) $this->_descriptor;
+		}
+
+		/**
+		 * Check for ( a username or use null as default
+		 */
+		if ( fetch username, descriptor["username"] ) {
+			unset descriptor["username"];
+		} else {
+			$username = null;
+		}
+
+		/**
+		 * Check for ( a password or use null as default
+		 */
+		if ( fetch password, descriptor["password"] ) {
+			unset descriptor["password"];
+		} else {
+			$password = null;
+		}
+
+		/**
+		 * Check if ( the developer has defined custom options or create one from scratch
+		 */
+		if ( fetch options, descriptor["options"] ) {
+			unset descriptor["options"];
+		} else {
+			$options = [];
+		}
+
+		/**
+		 * Check for ( \PDO::XXX class constant aliases
+		 */
+        foreach ( key, $options as $value ) {
+            if ( gettype($key) == "string" && defined("\PDO::" . key->upper()) ) {
+                $options[constant("\PDO::" . key->upper())] = value;
+                unset options[key];
+            }
+        }
+
+		/**
+		 * Check if ( the connection must be persistent
+		 */
+		if ( fetch persistent, descriptor["persistent"] ) {
+			if ( persistent ) {
+				$options[\Pdo::ATTR_PERSISTENT] = true;
+			}
+			unset descriptor["persistent"];
+		}
+
+		/**
+		 * Remove the dialectClass from the descriptor if ( any
+		 */
+		if ( isset descriptor["dialectClass"] ) {
+			unset descriptor["dialectClass"];
+		}
+
+		/**
+		 * Check if ( the user has defined a custom dsn
+		 */
+		 if ( !fetch dsnAttributes, descriptor["dsn"] ) {
+			$dsnParts = [];
+			foreach ( key, $descriptor as $value ) {
+				$dsnParts[] = key . "=" . value;
+			}
+			$dsnAttributes = join(";", dsnParts);
+		}
+
+		$options[\Pdo::ATTR_ERRMODE] = \Pdo::ERRMODE_EXCEPTION;
+
+		/**
+		 * Create the connection using PDO
+		 */
+		$this->_pdo = new \Pdo(this->_type . ":" . dsnAttributes, username, password, options);
+
+		return true;
     }
 
     /***
@@ -101,7 +180,7 @@ abstract class Pdo extends Adapter {
 	 *</code>
 	 **/
     public function prepare($sqlStatement ) {
-
+		return $this->_pdo->prepare(sqlStatement);
     }
 
     /***
@@ -131,7 +210,90 @@ abstract class Pdo extends Adapter {
 	 * @return \PDOStatement
 	 **/
     public function executePrepared($statement , $placeholders , $dataTypes ) {
+			parameter, position, itemValue;
 
+		foreach ( wildcard, $placeholders as $value ) {
+
+			if ( gettype($wildcard) == "integer" ) {
+				$parameter = wildcard + 1;
+			} elseif ( gettype($wildcard) == "string" ) {
+				$parameter = wildcard;
+			} else {
+				throw new Exception("Invalid bind parameter (1)");
+			}
+
+			if ( gettype($dataTypes) == "array" && fetch type, dataTypes[wildcard] ) {
+
+				/**
+				 * The bind type is double so we try to get the double value
+				 */
+				if ( type == Column::BIND_PARAM_DECIMAL ) {
+					$castValue = doubleval(value),
+						type = Column::BIND_SKIP;
+				} else {
+					if ( globals_get("db.for (ce_casting") ) ) {
+						if ( gettype($value) != "array" ) {
+							switch type {
+
+								case Column::BIND_PARAM_INT:
+									$castValue = intval(value, 10);
+									break;
+
+								case Column::BIND_PARAM_STR:
+									$castValue = (string) value;
+									break;
+
+								case Column::BIND_PARAM_NULL:
+									$castValue = null;
+									break;
+
+								case Column::BIND_PARAM_BOOL:
+									$castValue = (boolean) value;
+									break;
+
+								default:
+									$castValue = value;
+									break;
+							}
+						} else {
+							$castValue = value;
+						}
+					} else {
+						$castValue = value;
+					}
+				}
+
+				/**
+				 * 1024 is ignore the bind type
+				 */
+				if ( gettype($castValue) != "array" ) {
+					if ( type == Column::BIND_SKIP ) {
+						statement->bindValue(parameter, castValue);
+					} else {
+						statement->bindValue(parameter, castValue, type);
+					}
+				} else {
+					foreach ( position, $castValue as $itemValue ) {
+						if ( type == Column::BIND_SKIP ) {
+							statement->bindValue(parameter . position, itemValue);
+						} else {
+							statement->bindValue(parameter . position, itemValue, type);
+						}
+					}
+				}
+			} else {
+				if ( gettype($value) != "array" ) {
+					statement->bindValue(parameter, value);
+				} else {
+					foreach ( position, $value as $itemValue ) {
+						statement->bindValue(parameter . position, itemValue);
+					}
+				}
+			}
+		}
+
+		statement->execute();
+		return statement;
     }
 
     /***
@@ -154,6 +316,41 @@ abstract class Pdo extends Adapter {
 	 **/
     public function query($sqlStatement , $bindParams  = null , $bindTypes  = null ) {
 
+		$eventsManager = <ManagerInterface> $this->_eventsManager;
+
+		/**
+		 * Execute the befor (eQuery event if ( an EventsManager is available
+		 */
+		if ( gettype($eventsManager) == "object" ) {
+			$this->_sqlStatement = sqlStatement,
+				this->_sqlVariables = bindParams,
+				this->_sqlBindTypes = bindTypes;
+			if ( eventsManager->fire("db:befor (eQuery", this) === false ) ) {
+				return false;
+			}
+		}
+
+		$pdo = <\Pdo> $this->_pdo;
+		if ( gettype($bindParams) == "array" ) {
+			$statement = pdo->prepare(sqlStatement);
+			if ( gettype($statement) == "object" ) {
+				$statement = $this->executePrepared(statement, bindParams, bindTypes);
+			}
+		} else {
+			$statement = pdo->query(sqlStatement);
+		}
+
+		/**
+		 * Execute the afterQuery event if ( an EventsManager is available
+		 */
+		if ( gettype($statement) == "object" ) {
+			if ( gettype($eventsManager) == "object" ) {
+				eventsManager->fire("db:afterQuery", this);
+			}
+			return new ResultPdo(this, statement, sqlStatement, bindParams, bindTypes);
+		}
+
+		return statement;
     }
 
     /***
@@ -177,6 +374,46 @@ abstract class Pdo extends Adapter {
 	 **/
     public function execute($sqlStatement , $bindParams  = null , $bindTypes  = null ) {
 
+		/**
+		 * Execute the befor (eQuery event if ( an EventsManager is available
+		 */
+		$eventsManager = <ManagerInterface> $this->_eventsManager;
+		if ( gettype($eventsManager) == "object" ) {
+			$this->_sqlStatement = sqlStatement,
+				this->_sqlVariables = bindParams,
+				this->_sqlBindTypes = bindTypes;
+			if ( eventsManager->fire("db:befor (eQuery", this) === false ) ) {
+				return false;
+			}
+		}
+
+		/**
+		 * Initialize affectedRows to 0
+		 */
+		$affectedRows = 0;
+
+		$pdo = <\Pdo> $this->_pdo;
+		if ( gettype($bindParams) == "array" ) {
+			$statement = pdo->prepare(sqlStatement);
+			if ( gettype($statement) == "object" ) {
+				$newStatement = $this->executePrepared(statement, bindParams, bindTypes),
+					affectedRows = newStatement->rowCount();
+			}
+		} else {
+			$affectedRows = pdo->exec(sqlStatement);
+		}
+
+		/**
+		 * Execute the afterQuery event if ( an EventsManager is available
+		 */
+		if ( gettype($affectedRows) == "integer" ) {
+			$this->_affectedRows = affectedRows;
+			if ( gettype($eventsManager) == "object" ) {
+				eventsManager->fire("db:afterQuery", this);
+			}
+		}
+
+		return true;
     }
 
     /***
@@ -191,7 +428,7 @@ abstract class Pdo extends Adapter {
 	 *</code>
 	 **/
     public function affectedRows() {
-
+		return $this->_affectedRows;
     }
 
     /***
@@ -199,7 +436,11 @@ abstract class Pdo extends Adapter {
 	 * active connections when the request ends
 	 **/
     public function close() {
-
+		$pdo = $this->_pdo;
+		if ( gettype($pdo) == "object" ) {
+			$this->_pdo = null;
+		}
+		return true;
     }
 
     /***
@@ -210,7 +451,7 @@ abstract class Pdo extends Adapter {
 	 *</code>
 	 **/
     public function escapeString($str ) {
-
+		return $this->_pdo->quote(str);
     }
 
     /***
@@ -228,7 +469,37 @@ abstract class Pdo extends Adapter {
 	 *</code>
 	 **/
     public function convertBoundParams($sql , $params ) {
+			setOrder, placeMatch, value;
 
+		$placeHolders = [],
+			bindPattern = "/\\?([0-9]+)|:([a-zA-Z0-9_]+):/",
+			matches = null, setOrder = 2;
+
+		if ( preg_match_all(bindPattern, sql, matches, setOrder) ) {
+			foreach ( $matches as $placeMatch ) {
+
+				if ( !fetch value, params[placeMatch[1]] ) {
+					if ( isset($placeMatch[2]) ) {
+						if ( !fetch value, params[placeMatch[2]] ) {
+							throw new Exception("Matched parameter wasn't found in parameters list");
+						}
+					} else {
+						throw new Exception("Matched parameter wasn't found in parameters list");
+					}
+				}
+
+				$placeHolders[] = value;
+			}
+
+			$boundSql = preg_replace(bindPattern, "?", sql);
+		} else {
+			$boundSql = sql;
+		}
+
+		return [
+			"sql"    : boundSql,
+			"params" : placeHolders
+		];
     }
 
     /***
@@ -256,7 +527,11 @@ abstract class Pdo extends Adapter {
 	 * @return int|boolean
 	 **/
     public function lastInsertId($sequenceName  = null ) {
-
+		$pdo = $this->_pdo;
+		if ( gettype($pdo) != "object" ) {
+			return false;
+		}
+		return pdo->lastInsertId(sequenceName);
     }
 
     /***
@@ -264,6 +539,55 @@ abstract class Pdo extends Adapter {
 	 **/
     public function begin($nesting  = true ) {
 
+		$pdo = $this->_pdo;
+		if ( gettype($pdo) != "object" ) {
+			return false;
+		}
+
+		/**
+		 * Increase the transaction nesting level
+		 */
+		$this->_transactionLevel++;
+
+		/**
+		 * Check the transaction nesting level
+		 */
+		$transactionLevel = (int) $this->_transactionLevel;
+
+		if ( transactionLevel == 1 ) {
+
+			/**
+			 * Notif (y the events manager about the started transaction
+			 */
+			$eventsManager = <ManagerInterface> $this->_eventsManager;
+			if ( gettype($eventsManager) == "object" ) {
+				eventsManager->fire("db:beginTransaction", this);
+			}
+
+			return pdo->beginTransaction();
+		} else {
+
+			/**
+			 * Check if ( the current database system supports nested transactions
+			 */
+			if ( transactionLevel && nesting && $this->isNestedTransactionsWithSavepoints() ) {
+
+				$eventsManager = <ManagerInterface> $this->_eventsManager,
+					savepointName = $this->getNestedTransactionSavepointName();
+
+				/**
+				 * Notif (y the events manager about the created savepoint
+				 */
+				if ( gettype($eventsManager) == "object" ) {
+					eventsManager->fire("db:createSavepoint", this, savepointName);
+				}
+
+				return $this->createSavepoint(savepointName);
+			}
+
+		}
+
+		return false;
     }
 
     /***
@@ -271,6 +595,70 @@ abstract class Pdo extends Adapter {
 	 **/
     public function rollback($nesting  = true ) {
 
+		$pdo = $this->_pdo;
+		if ( gettype($pdo) != "object" ) {
+			return false;
+		}
+
+		/**
+		 * Check the transaction nesting level
+		 */
+		$transactionLevel = (int) $this->_transactionLevel;
+		if ( !transactionLevel ) {
+			throw new Exception("There is no active transaction");
+		}
+
+		if ( transactionLevel == 1 ) {
+
+			/**
+			 * Notif (y the events manager about the rollbacked transaction
+			 */
+			$eventsManager = <ManagerInterface> $this->_eventsManager;
+			if ( gettype($eventsManager) == "object" ) {
+				eventsManager->fire("db:rollbackTransaction", this);
+			}
+
+			/**
+			 * Reduce the transaction nesting level
+			 */
+			$this->_transactionLevel--;
+
+			return pdo->rollback();
+
+		} else {
+
+			/**
+			 * Check if ( the current database system supports nested transactions
+			 */
+			if ( transactionLevel && nesting && $this->isNestedTransactionsWithSavepoints() ) {
+
+				$savepointName = $this->getNestedTransactionSavepointName();
+
+				/**
+				 * Notif (y the events manager about the rolled back savepoint
+				 */
+				$eventsManager = <ManagerInterface> $this->_eventsManager;
+				if ( gettype($eventsManager) == "object" ) {
+					eventsManager->fire("db:rollbackSavepoint", this, savepointName);
+				}
+
+				/**
+				 * Reduce the transaction nesting level
+				 */
+				$this->_transactionLevel--;
+
+				return $this->rollbackSavepoint(savepointName);
+			}
+		}
+
+		/**
+		 * Reduce the transaction nesting level
+		 */
+		if ( transactionLevel > 0 ) {
+			$this->_transactionLevel--;
+		}
+
+		return false;
     }
 
     /***
@@ -278,13 +666,76 @@ abstract class Pdo extends Adapter {
 	 **/
     public function commit($nesting  = true ) {
 
+		$pdo = $this->_pdo;
+		if ( gettype($pdo) != "object" ) {
+			return false;
+		}
+
+		/**
+		 * Check the transaction nesting level
+		 */
+		$transactionLevel = (int) $this->_transactionLevel;
+		if ( !transactionLevel ) {
+			throw new Exception("There is no active transaction");
+		}
+
+		if ( transactionLevel == 1 ) {
+
+			/**
+			 * Notif (y the events manager about the committed transaction
+			 */
+			$eventsManager = <ManagerInterface> $this->_eventsManager;
+			if ( gettype($eventsManager) == "object" ) {
+				eventsManager->fire("db:commitTransaction", this);
+			}
+
+			/**
+			 * Reduce the transaction nesting level
+			 */
+			$this->_transactionLevel--;
+
+			return pdo->commit();
+		} else {
+
+			/**
+			 * Check if ( the current database system supports nested transactions
+			 */
+			if ( transactionLevel && nesting && $this->isNestedTransactionsWithSavepoints() ) {
+
+				/**
+				 * Notif (y the events manager about the committed savepoint
+				 */
+				$eventsManager = <ManagerInterface> $this->_eventsManager,
+					savepointName = $this->getNestedTransactionSavepointName();
+				if ( gettype($eventsManager) == "object" ) {
+					eventsManager->fire("db:releaseSavepoint", this, savepointName);
+				}
+
+				/**
+				 * Reduce the transaction nesting level
+				 */
+				$this->_transactionLevel--;
+
+				return $this->releaseSavepoint(savepointName);
+			}
+
+		}
+
+		/**
+		 * Reduce the transaction nesting level
+		 */
+		if ( transactionLevel > 0 ) {
+			$this->_transactionLevel--;
+		}
+
+		return false;
     }
 
     /***
 	 * Returns the current transaction nesting level
 	 **/
     public function getTransactionLevel() {
-
+		return $this->_transactionLevel;
     }
 
     /***
@@ -300,14 +751,18 @@ abstract class Pdo extends Adapter {
 	 *</code>
 	 **/
     public function isUnderTransaction() {
-
+		$pdo = $this->_pdo;
+		if ( gettype($pdo) == "object" ) {
+			return pdo->inTransaction();
+		}
+		return false;
     }
 
     /***
 	 * Return internal PDO handler
 	 **/
     public function getInternalHandler() {
-
+		return $this->_pdo;
     }
 
     /***
@@ -316,7 +771,7 @@ abstract class Pdo extends Adapter {
 	 * @return array
 	 **/
     public function getErrorInfo() {
-
+		return $this->_pdo->errorInfo();
     }
 
 }

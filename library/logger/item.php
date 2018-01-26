@@ -46,7 +46,13 @@ class Item {
 	 * @param array $context
 	 **/
     public function __construct($message , $type , $time  = 0 , $context  = null ) {
+		$this->_message = message,
+			this->_type = type,
+			this->_time = time;
 
+		if ( gettype($context) == "array" ) {
+			$this->_context = context;
+		}
     }
 
 }

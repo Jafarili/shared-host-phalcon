@@ -71,21 +71,21 @@ class Simple extends Injectable {
 	 * Phalcon\Mvc\View\Simple constructor
 	 **/
     public function __construct($options ) {
-
+		$this->_options = options;
     }
 
     /***
 	 * Sets views directory. Depending of your platform, always add a trailing slash or backslash
 	 **/
     public function setViewsDir($viewsDir ) {
-
+		$this->_viewsDir = viewsDir;
     }
 
     /***
 	 * Gets views directory
 	 **/
     public function getViewsDir() {
-
+		return $this->_viewsDir;
     }
 
     /***
@@ -102,7 +102,7 @@ class Simple extends Injectable {
 	 *</code>
 	 **/
     public function registerEngines($engines ) {
-
+		$this->_registeredEngines = engines;
     }
 
     /***
@@ -111,7 +111,70 @@ class Simple extends Injectable {
 	 * @return array
 	 **/
     protected function _loadTemplateEngines() {
+			engineService, engineObject;
 
+		/**
+		 * If the engines aren't initialized 'engines' is false
+		 */
+		$engines = $this->_engines;
+		if ( engines === false ) {
+
+			$dependencyInjector = $this->_dependencyInjector;
+
+			$engines = [];
+
+			$registeredEngines = $this->_registeredEngines;
+			if ( gettype($registeredEngines) != "array" ) {
+
+				/**
+				 * We use Phalcon\Mvc\View\Engine\Php as default
+				 * Use .phtml as extension for ( the PHP engine
+				 */
+				$engines[".phtml"] = new PhpEngine(this, dependencyInjector);
+
+			} else {
+
+				if ( gettype($dependencyInjector) != "object" ) {
+					throw new Exception("A dependency injector container is required to obtain the application services");
+				}
+
+				/**
+				 * Arguments for ( instantiated engines
+				 */
+				$arguments = [this, dependencyInjector];
+
+				foreach ( extension, $registeredEngines as $engineService ) {
+
+					if ( gettype($engineService) == "object" ) {
+						/**
+						 * Engine can be a closure
+						 */
+						if ( engineService instanceof \Closure ) {
+							$engineObject = call_user_func_array(engineService, arguments);
+						} else {
+							$engineObject = engineService;
+						}
+					} else {
+						/**
+						 * Engine can be a string representing a service in the DI
+						 */
+						if ( gettype($engineService) == "string" ) {
+							$engineObject = dependencyInjector->getShared(engineService, arguments);
+						} else {
+							throw new Exception("Invalid template engine registration for ( extension: " . extension);
+						}
+					}
+
+					$engines[extension] = engineObject;
+				}
+			}
+
+			$this->_engines = engines;
+		} else {
+			$engines = $this->_engines;
+		}
+
+		return engines;
     }
 
     /***
@@ -121,6 +184,88 @@ class Simple extends Injectable {
 	 * @param array  params
 	 **/
     protected final function _internalRender($path , $params ) {
+
+		$eventsManager = $this->_eventsManager;
+
+		if ( gettype($eventsManager) == "object" ) {
+			$this->_activeRenderPath = path;
+		}
+
+		/**
+		 * Call befor (eRender if ( there is an events manager
+		 */
+		if ( gettype($eventsManager) == "object" ) {
+			if ( eventsManager->fire("view:befor (eRender", this) === false ) ) {
+				return null;
+			}
+		}
+
+		$notExists = true,
+			mustClean = true;
+
+		$viewsDirPath =  $this->_viewsDir . path;
+
+		/**
+		 * Load the template engines
+		 */
+		$engines = $this->_loadTemplateEngines();
+
+		/**
+		 * Views are rendered in each engine
+		 */
+		foreach ( extension, $engines as $engine ) {
+
+			if ( file_exists(viewsDirPath . extension) ) {
+				$viewEnginePath = viewsDirPath . extension;
+			} else {
+
+				/**
+				 * if ( passed filename with engine extension
+				 */
+				if ( extension && substr(viewsDirPath, -strlen(extension)) == extension && file_exists(viewsDirPath) ) {
+					$viewEnginePath = viewsDirPath;
+				} else {
+					$viewEnginePath = "";
+				}
+			}
+
+			if ( viewEnginePath ) {
+
+				/**
+				 * Call befor (eRenderView if ( there is an events manager available
+				 */
+				if ( gettype($eventsManager) == "object" ) {
+					if ( eventsManager->fire("view:befor (eRenderView", this, viewEnginePath) === false ) ) {
+						continue;
+					}
+				}
+
+				engine->render(viewEnginePath, params, mustClean);
+
+				/**
+				 * Call afterRenderView if ( there is an events manager available
+				 */
+				$notExists = false;
+				if ( gettype($eventsManager) == "object" ) {
+					eventsManager->fire("view:afterRenderView", this);
+				}
+				break;
+			}
+		}
+
+		/**
+		 * Always throw an exception if ( the view does not exist
+		 */
+		if ( notExists === true ) {
+			throw new Exception("View '" . viewsDirPath . "' was not found in the views directory");
+		}
+
+		/**
+		 * Call afterRender event
+		 */
+		if ( gettype($eventsManager) == "object" ) {
+			eventsManager->fire("view:afterRender", this);
+		}
 
     }
 
@@ -132,6 +277,87 @@ class Simple extends Injectable {
 	 **/
     public function render($path , $params  = null ) {
 
+		/**
+		 * Create/Get a cache
+		 */
+		$cache = $this->getCache();
+
+		if ( gettype($cache) == "object" ) {
+
+			/**
+			 * Check if ( the cache is started, the first time a cache is started we start the cache
+			 */
+			if ( cache->isStarted() === false ) {
+
+				$key = null, lif (etime = null;
+
+				/**
+				 * Check if ( the user has defined a dif (ferent options to the default
+				 */
+				$cacheOptions = $this->_cacheOptions;
+				if ( gettype($cacheOptions) == "array" ) {
+				}
+
+				/**
+				 * If a cache key is not set we create one using a md5
+				 */
+				if ( key === null ) {
+					$key = md5(path);
+				}
+
+				/**
+				 * We start the cache using the key set
+				 */
+				$content = cache->start(key, lif (etime);
+				if ( content !== null ) {
+					$this->_content = content;
+					return content;
+				}
+			}
+
+		}
+
+		/**
+		 * Create a virtual symbol table
+		 */
+		create_symbol_table();
+
+		ob_start();
+
+		$viewParams = $this->_viewParams;
+
+		/**
+		 * Merge parameters
+		 */
+		if ( gettype($params) == "array" ) {
+			if ( gettype($viewParams) == "array" ) {
+				$mergedParams = array_merge(viewParams, params);
+			} else {
+				$mergedParams = params;
+			}
+		} else {
+			$mergedParams = viewParams;
+		}
+
+		/**
+		 * internalRender is also reused by partials
+		 */
+		this->_internalRender(path, mergedParams);
+
+		/**
+		 * Store the data in output into the cache
+		 */
+		if ( gettype($cache) == "object" ) {
+			if ( cache->isStarted() && cache->isFresh() ) {
+				cache->save();
+			} else {
+				cache->stop();
+			}
+		}
+
+		ob_end_clean();
+
+		return $this->_content;
     }
 
     /***
@@ -154,13 +380,65 @@ class Simple extends Injectable {
 	 **/
     public function partial($partialPath , $params  = null ) {
 
+		/**
+		 * Start output buffering
+		 */
+		ob_start();
+
+		/**
+		 * If the developer pass an array of variables we create a new virtual symbol table
+		 */
+		if ( gettype($params) == "array" ) {
+
+			$viewParams = $this->_viewParams;
+
+			/**
+			 * Merge or assign the new params as parameters
+			 */
+			if ( gettype($viewParams) == "array" ) {
+				$mergedParams = array_merge(viewParams, params);
+			} else {
+				$mergedParams = params;
+			}
+
+			/**
+			 * Create a virtual symbol table
+			 */
+			create_symbol_table();
+
+		} else {
+			$mergedParams = params;
+		}
+
+		/**
+		 * Call engine render, this $every as $checks registered engine foreach ( the partial
+		 */
+		this->_internalRender(partialPath, mergedParams);
+
+		/**
+		 * Now we need to restore the original view parameters
+		 */
+		if ( gettype($params) == "array" ) {
+			/**
+			 * Restore the original view params
+			 */
+			$this->_viewParams = viewParams;
+		}
+
+		ob_end_clean();
+
+		/**
+		 * Content is output to the parent view
+		 */
+		echo $this->_content;
     }
 
     /***
 	 * Sets the cache options
 	 **/
     public function setCacheOptions($options ) {
-
+		$this->_cacheOptions = options;
+		return this;
     }
 
     /***
@@ -169,7 +447,7 @@ class Simple extends Injectable {
 	 * @return array
 	 **/
     public function getCacheOptions() {
-
+		return $this->_cacheOptions;
     }
 
     /***
@@ -177,13 +455,39 @@ class Simple extends Injectable {
 	 **/
     protected function _createCache() {
 
+		$dependencyInjector = $this->_dependencyInjector;
+		if ( gettype($dependencyInjector) != "object" ) {
+			throw new Exception("A dependency injector container is required to obtain the view cache services");
+		}
+
+		$cacheService = "viewCache";
+
+		$cacheOptions = $this->_cacheOptions;
+		if ( gettype($cacheOptions) == "array" ) {
+			if ( isset cacheOptions["service"] ) {
+			}
+		}
+
+		/**
+		 * The injected service must be an object
+		 */
+		$viewCache = <BackendInterface> dependencyInjector->getShared(cacheService);
+		if ( gettype($viewCache) != "object" ) {
+			throw new Exception("The injected caching service is invalid");
+		}
+
+		return viewCache;
     }
 
     /***
 	 * Returns the cache instance used to cache
 	 **/
     public function getCache() {
+		if ( $this->_cache && gettype($this->_cache) != "object" ) {
+			$this->_cache = $this->_createCache();
+		}
 
+		return $this->_cache;
     }
 
     /***
@@ -199,7 +503,17 @@ class Simple extends Injectable {
 	 *</code>
 	 **/
     public function cache($options  = true ) {
-
+		if ( gettype($options) == "array" ) {
+			$this->_cache = true,
+				this->_cacheOptions = options;
+		} else {
+			if ( options ) {
+				$this->_cache = true;
+			} else {
+				$this->_cache = false;
+			}
+		}
+		return this;
     }
 
     /***
@@ -210,7 +524,8 @@ class Simple extends Injectable {
 	 *</code>
 	 **/
     public function setParamToView($key , $value ) {
-
+		$this->_viewParams[key] = value;
+		return this;
     }
 
     /***
@@ -225,7 +540,13 @@ class Simple extends Injectable {
 	 *</code>
 	 **/
     public function setVars($params , $merge  = true ) {
+		if ( merge && gettype($this->_viewParams) == "array" ) {
+			$this->_viewParams = array_merge(this->_viewParams, params);
+		} else {
+			$this->_viewParams = params;
+		}
 
+		return this;
     }
 
     /***
@@ -236,14 +557,19 @@ class Simple extends Injectable {
 	 *</code>
 	 **/
     public function setVar($key , $value ) {
-
+		$this->_viewParams[key] = value;
+		return this;
     }
 
     /***
 	 * Returns a parameter previously set in the view
 	 **/
     public function getVar($key ) {
-
+		var	value;
+		if ( fetch value, $this->_viewParams[key] ) {
+			return value;
+		}
+		return null;
     }
 
     /***
@@ -252,7 +578,7 @@ class Simple extends Injectable {
 	 * @return array
 	 **/
     public function getParamsToView() {
-
+		return $this->_viewParams;
     }
 
     /***
@@ -263,14 +589,15 @@ class Simple extends Injectable {
 	 *</code>
 	 **/
     public function setContent($content ) {
-
+		$this->_content = content;
+		return this;
     }
 
     /***
 	 * Returns cached output from another view stage
 	 **/
     public function getContent() {
-
+		return $this->_content;
     }
 
     /***
@@ -279,7 +606,7 @@ class Simple extends Injectable {
 	 * @return string
 	 **/
     public function getActiveRenderPath() {
-
+		return $this->_activeRenderPath;
     }
 
     /***
@@ -290,7 +617,7 @@ class Simple extends Injectable {
 	 *</code>
 	 **/
     public function __set($key , $value ) {
-
+		$this->_viewParams[key] = value;
     }
 
     /***
@@ -301,7 +628,11 @@ class Simple extends Injectable {
 	 *</code>
 	 **/
     public function __get($key ) {
+		if ( fetch value, $this->_viewParams[key] ) {
+			return value;
+		}
 
+		return null;
     }
 
 }

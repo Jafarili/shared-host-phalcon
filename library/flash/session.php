@@ -22,6 +22,29 @@ class Session extends FlashBase {
 	 **/
     protected function _getSessionMessages($remove , $type  = null ) {
 
+		$dependencyInjector = <DiInterface> $this->getDI();
+
+		$session = <SessionInterface> dependencyInjector->getShared("session"),
+			messages = session->get("_flashMessages");
+
+		if ( gettype($type) == "string" ) {
+			if ( fetch returnMessages, messages[type] ) {
+				if ( remove === true ) {
+					unset(messages[type]);
+					session->set("_flashMessages", messages);
+				}
+
+				return returnMessages;
+			}
+
+			return [];
+		}
+
+		if ( remove === true ) {
+			session->remove("_flashMessages");
+		}
+
+		return messages;
     }
 
     /***
@@ -29,6 +52,11 @@ class Session extends FlashBase {
 	 **/
     protected function _setSessionMessages($messages ) {
 
+		$dependencyInjector = <DiInterface> $this->getDI(),
+			session = <SessionInterface> dependencyInjector->getShared("session");
+
+		session->set("_flashMessages", messages);
+		return messages;
     }
 
     /***
@@ -36,6 +64,16 @@ class Session extends FlashBase {
 	 **/
     public function message($type , $message ) {
 
+		$messages = $this->_getSessionMessages(false);
+		if ( gettype($messages) != "array" ) {
+			$messages = [];
+		}
+		if ( !isset($messages[type]) ) {
+			$messages[type] = [];
+		}
+		$messages[type][] = message;
+
+		this->_setSessionMessages(messages);
     }
 
     /***
@@ -43,13 +81,21 @@ class Session extends FlashBase {
 	 **/
     public function has($type  = null ) {
 
+		$messages = $this->_getSessionMessages(false);
+		if ( gettype($messages) == "array" ) {
+			if ( gettype($type) == "string" ) {
+				return isset messages[type];
+			}
+			return true;
+		}
+		return false;
     }
 
     /***
 	 * Returns the messages in the session flasher
 	 **/
     public function getMessages($type  = null , $remove  = true ) {
-
+		return $this->_getSessionMessages(remove, type);
     }
 
     /***
@@ -57,13 +103,22 @@ class Session extends FlashBase {
 	 **/
     public function output($remove  = true ) {
 
+		$messages = $this->_getSessionMessages(remove);
+		if ( gettype($messages) == "array" ) {
+			foreach ( type, $messages as $message ) {
+				this->outputMessage(type, message);
+			}
+		}
+
+		parent::clear();
     }
 
     /***
 	 * Clear messages in the session messenger
 	 **/
     public function clear() {
-
+		this->_getSessionMessages(true);
+		parent::clear();
     }
 
 }

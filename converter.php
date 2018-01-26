@@ -180,8 +180,63 @@ function classMaker($object) {
                     }
                 }
                 $class .= ") {\n";
-/*                if (isset($method["statements"]) and is_array($method["statements"])) {
-                    foreach ($method["statements"] as $key => $statement) {
+                if (isset($method["statements"]) and is_array($method["statements"])) {
+                    $begging = 99999999999999;
+                    $end = 0;
+                    recursive($method["statements"] , $begging , $end);
+                    $code = array_slice(explode("\n",file_get_contents($method["file"])),$begging-1,$end-$begging);
+                    foreach ($code as $key=>&$code_line) {
+                        $matches = array();
+                        preg_match('/typeof [a-zA-Z->_0123456789$()\[\]]+ /',$code_line,$matches);
+                        if (count($matches) > 0) {
+                            $match = str_replace("typeof ","gettype($",$matches[0]);
+                            $match = str_replace(" ","",$match);
+                            $match .= ") ";
+                            $code_line = str_replace($matches[0],$match,$code_line);
+                        }
+
+                        if (strpos($code_line,"for") !== false) {
+                            $matches = array();
+                            preg_match('/ [a-zA-Z->_0123456789$()\[\]]+ in [a-zA-Z->_0123456789$()\[\]]+ /',$code_line,$matches);
+                            if (count($matches) > 0) {
+                                $params = array_map('trim',explode(" in ",$matches[0]));
+                                $code_line = str_replace($matches[0]," $".$params[1]." as $".$params[0]." ",$code_line);
+                                $code_line = str_replace("for",'foreach (',$code_line);
+                                $code_line = str_replace("{",') {',$code_line);
+                            }else {
+                                $code_line = str_replace("for",'for (',$code_line);
+                                $code_line = str_replace("{",') {',$code_line);
+                            }
+                            //die(var_dump($code_line));
+                        }
+
+                        $matches = array();
+                        preg_match('/isset [a-zA-Z->_0123456789$()\[\]]+ /',$code_line,$matches);
+                        if (count($matches) > 0) {
+                            $match = str_replace("isset ","isset($",$matches[0]);
+                            $match = str_replace(" ","",$match);
+                            $match .= ") ";
+                            $code_line = str_replace($matches[0],$match,$code_line);
+                        }
+
+                        //$code_line = str_replace("typeof","gettype",$code_line);
+                        $code_line = str_replace("let ","$",$code_line);
+                        $code_line = str_replace(" this->",' $this->',$code_line);
+                        if (strpos($code_line,"if") !== false) {
+                            $code_line = str_replace("if",'if (',$code_line);
+                            $code_line = str_replace("{",') {',$code_line);
+                        }
+                        if (strpos($code_line,"	var ") !== false) {
+                            unset($code[$key]);
+                        }
+                        if (strpos($code_line,"	fetch ") !== false) {
+                            unset($code[$key]);
+                        }
+                    }
+                    $code = implode("\n",$code);
+                    $class .= $code;
+
+/*                    foreach ($method["statements"] as $key => $statement) {
                         if ($statement["type"] == "let") {
                             if (isset($statement["assignments"]) and is_array($statement["assignments"])) {
                                 foreach ($statement["assignments"] as $key => $assignment) {
@@ -234,14 +289,31 @@ function classMaker($object) {
                                 }
                             }
                         }
-                    }
-                }*/
+                    }*/
+                }
                 $class .= "\n    }\n\n";
             }
         }
     }
     $class .= "}";
     return $class;
+}
+
+function recursive($array , &$begin = 99999999999999 , &$end = 0){
+    foreach($array as $key => $value){
+        if(is_array($value)){
+            recursive($value , $begin , $end);
+        } else{
+            if ($key == "line") {
+                if ($value > $end)
+                    $end = $value;
+                if ($value < $begin)
+                    $begin = $value;
+                //echo $value, '<br>';
+            }
+
+        }
+    }
 }
 
 function interfaceMaker($object) {

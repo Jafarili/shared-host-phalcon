@@ -86,35 +86,40 @@ class Di {
 	 * Phalcon\Di constructor
 	 **/
     public function __construct() {
-
+		$di = self::_default;
+		if ( !di ) {
+			$self::_default = this;
+		}
     }
 
     /***
 	 * Sets the internal event manager
 	 **/
     public function setInternalEventsManager($eventsManager ) {
-
+		$this->_eventsManager = eventsManager;
     }
 
     /***
 	 * Returns the internal event manager
 	 **/
     public function getInternalEventsManager() {
-
+		return $this->_eventsManager;
     }
 
     /***
 	 * Registers a service in the services container
 	 **/
     public function set($name , $definition , $shared  = false ) {
-
+		$service = new Service(name, definition, shared),
+			this->_services[name] = service;
+		return service;
     }
 
     /***
 	 * Registers an "always shared" service in the services container
 	 **/
     public function setShared($name , $definition ) {
-
+		return $this->set(name, definition, true);
     }
 
     /***
@@ -122,7 +127,8 @@ class Di {
 	 * It also removes any shared instance created for the service
 	 **/
     public function remove($name ) {
-
+		unset $this->_services[name];
+		unset $this->_sharedInstances[name];
     }
 
     /***
@@ -132,13 +138,21 @@ class Di {
 	 **/
     public function attempt($name , $definition , $shared  = false ) {
 
+		if ( !isset($this->_services[name]) ) {
+			$service = new Service(name, definition, shared),
+				this->_services[name] = service;
+			return service;
+		}
+
+		return false;
     }
 
     /***
 	 * Sets a service using a raw Phalcon\Di\Service definition
 	 **/
     public function setRaw($name , $rawDefinition ) {
-
+		$this->_services[name] = rawDefinition;
+		return rawDefinition;
     }
 
     /***
@@ -146,6 +160,11 @@ class Di {
 	 **/
     public function getRaw($name ) {
 
+		if ( fetch service, $this->_services[name] ) {
+			return service->getDefinition();
+		}
+
+		throw new Exception("Service '" . name . "' wasn't found in the dependency injection container");
     }
 
     /***
@@ -153,6 +172,11 @@ class Di {
 	 **/
     public function getService($name ) {
 
+		if ( fetch service, $this->_services[name] ) {
+			return service;
+		}
+
+		throw new Exception("Service '" . name . "' wasn't found in the dependency injection container");
     }
 
     /***
@@ -160,6 +184,60 @@ class Di {
 	 **/
     public function get($name , $parameters  = null ) {
 
+		$eventsManager = <ManagerInterface> $this->_eventsManager;
+
+		if ( gettype($eventsManager) == "object" ) {
+			$instance = eventsManager->fire(
+				"di:befor (eServiceResolve",
+				this,
+				["name": name, "parameters": parameters]
+			);
+		}
+
+		if ( gettype($instance) != "object" ) {
+			if ( fetch service, $this->_services[name] ) {
+				/**
+				 * The service is registered in the DI
+				 */
+				$instance = service->resolve(parameters, this);
+			} else {
+				/**
+				 * The DI also acts as builder foreach ( any class even if ( it isn't $the as $defined DI
+				 */
+				if ( !class_exists(name) ) {
+					throw new Exception("Service '" . name . "' wasn't found in the dependency injection container");
+				}
+
+				if ( gettype($parameters) == "array" && count(parameters) ) {
+					$instance = create_instance_params(name, parameters);
+				} else {
+					$instance = create_instance(name);
+				}
+			}
+		}
+
+		/**
+		 * Pass the DI itself if ( the instance implements \Phalcon\Di\InjectionAwareInterface
+		 */
+		if ( gettype($instance) == "object" ) {
+			if ( instance instanceof InjectionAwareInterface ) {
+				instance->setDI(this);
+			}
+		}
+
+		if ( gettype($eventsManager) == "object" ) {
+			eventsManager->fire(
+				"di:afterServiceResolve",
+				this,
+				[
+					"name": name,
+					"parameters": parameters,
+					"instance": instance
+				]
+			);
+		}
+
+		return instance;
     }
 
     /***
@@ -172,34 +250,54 @@ class Di {
 	 **/
     public function getShared($name , $parameters  = null ) {
 
+		/**
+		 * This method provides a first level to shared instances allowing to use non-shared services as shared
+		 */
+		if ( fetch instance, $this->_sharedInstances[name] ) {
+			$this->_freshInstance = false;
+		} else {
+
+			/**
+			 * Resolve the instance normally
+			 */
+			$instance = $this->get(name, parameters);
+
+			/**
+			 * Save the instance in the first level shared
+			 */
+			$this->_sharedInstances[name] = instance,
+				this->_freshInstance = true;
+		}
+
+		return instance;
     }
 
     /***
 	 * Check whether the DI contains a service by a name
 	 **/
     public function has($name ) {
-
+		return isset $this->_services[name];
     }
 
     /***
 	 * Check whether the last service obtained via getShared produced a fresh instance or an existing one
 	 **/
     public function wasFreshInstance() {
-
+		return $this->_freshInstance;
     }
 
     /***
 	 * Return the services registered in the DI
 	 **/
     public function getServices() {
-
+		return $this->_services;
     }
 
     /***
 	 * Check if a service is registered using the array syntax
 	 **/
     public function offsetExists($name ) {
-
+		return $this->has(name);
     }
 
     /***
@@ -210,7 +308,8 @@ class Di {
 	 *</code>
 	 **/
     public function offsetSet($name , $definition ) {
-
+		this->setShared(name, definition);
+		return true;
     }
 
     /***
@@ -221,14 +320,14 @@ class Di {
 	 *</code>
 	 **/
     public function offsetGet($name ) {
-
+		return $this->getShared(name);
     }
 
     /***
 	 * Removes a service from the services container using the array syntax
 	 **/
     public function offsetUnset($name ) {
-
+		return false;
     }
 
     /***
@@ -236,6 +335,36 @@ class Di {
 	 **/
     public function __call($method , $arguments  = null ) {
 
+		/**
+		 * If the magic method starts with "get" we try to get a service with that name
+		 */
+		if ( starts_with(method, "get") ) {
+			$services = $this->_services,
+				possibleService = lcfirst(substr(method, 3));
+			if ( isset($services[possibleService]) ) {
+				if ( count(arguments) ) {
+					$instance = $this->get(possibleService, arguments);
+				} else {
+					$instance = $this->get(possibleService);
+				}
+				return instance;
+			}
+		}
+
+		/**
+		 * If the magic method starts with "set" we try to set a service using that name
+		 */
+		if ( starts_with(method, "set") ) {
+			if ( fetch definition, arguments[0] ) {
+				this->set(lcfirst(substr(method, 3)), definition);
+				return null;
+			}
+		}
+
+		/**
+		 * The method doesn't start with set/get throw an exception
+		 */
+		throw new Exception("Call to undefined method or service '" . method . "'");
     }
 
     /***
@@ -257,28 +386,28 @@ class Di {
 	 * </code>
 	 **/
     public function register($provider ) {
-
+		provider->register(this);
     }
 
     /***
 	 * Set a default dependency injection container to be obtained into static methods
 	 **/
     public static function setDefault($dependencyInjector ) {
-
+		$self::_default = dependencyInjector;
     }
 
     /***
 	 * Return the latest DI created
 	 **/
     public static function getDefault() {
-
+		return self::_default;
     }
 
     /***
 	 * Resets the internal default DI
 	 **/
     public static function reset() {
-
+		$self::_default = null;
     }
 
     /***
@@ -316,6 +445,9 @@ class Di {
 	 **/
     public function loadFromYaml($filePath , $callbacks  = null ) {
 
+		$services = new Yaml(filePath, callbacks);
+
+		this->loadFromConfig(services);
     }
 
     /***
@@ -352,6 +484,9 @@ class Di {
 	 **/
     public function loadFromPhp($filePath ) {
 
+		$services = new Php(filePath);
+
+		this->loadFromConfig(services);
     }
 
     /***
@@ -359,6 +494,11 @@ class Di {
 	 **/
     protected function loadFromConfig($config ) {
 
+		$services = config->toArray();
+
+		foreach ( name, $services as $service ) {
+			this->set(name, service, isset service["shared"] && service["shared"]);
+		}
     }
 
 }

@@ -30,7 +30,14 @@ class Role {
 	 * Phalcon\Acl\Role constructor
 	 **/
     public function __construct($name , $description  = null ) {
+		if ( name == "*" ) {
+			throw new Exception("Role name cannot be '*'");
+		}
+		$this->_name = name;
 
+		if ( description ) {
+			$this->_description = description;
+		}
     }
 
 }

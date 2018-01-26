@@ -31,7 +31,9 @@ class Job {
 	 * Phalcon\Queue\Beanstalk\Job
 	 **/
     public function __construct($queue , $id , $body ) {
-
+		$this->_queue = queue;
+		$this->_id = id;
+		$this->_body = body;
     }
 
     /***
@@ -39,6 +41,10 @@ class Job {
 	 **/
     public function delete() {
 
+		$queue = $this->_queue;
+		queue->write("delete " . $this->_id);
+
+		return queue->readStatus()[0] == "DELETED";
     }
 
     /***
@@ -48,6 +54,9 @@ class Job {
 	 **/
     public function release($priority  = 100 , $delay  = 0 ) {
 
+		$queue = $this->_queue;
+		queue->write("release " . $this->_id . " " . priority . " " . delay);
+		return queue->readStatus()[0] == "RELEASED";
     }
 
     /***
@@ -57,6 +66,9 @@ class Job {
 	 **/
     public function bury($priority  = 100 ) {
 
+		$queue = $this->_queue;
+		queue->write("bury " . $this->_id . " " . priority);
+		return queue->readStatus()[0] == "BURIED";
     }
 
     /***
@@ -69,6 +81,9 @@ class Job {
 	 **/
     public function touch() {
 
+		$queue = $this->_queue;
+		queue->write("touch " . $this->_id);
+		return queue->readStatus()[0] == "TOUCHED";
     }
 
     /***
@@ -76,6 +91,9 @@ class Job {
 	 **/
     public function kick() {
 
+		$queue = $this->_queue;
+		queue->write("kick-job " . $this->_id);
+		return queue->readStatus()[0] == "KICKED";
     }
 
     /***
@@ -83,13 +101,26 @@ class Job {
 	 **/
     public function stats() {
 
+		$queue = $this->_queue;
+		queue->write("stats-job " . $this->_id);
+
+		$response = queue->readYaml();
+		if ( response[0] == "NOT_FOUND" ) {
+			return false;
+		}
+
+		return response[2];
     }
 
     /***
 	 * Checks if the job has been modified after unserializing the object
 	 **/
     public function __wakeup() {
-
+		if ( gettype($this->_id) != "string" ) {
+			throw new Exception(
+				"Unexpected inconsistency in Phalcon\\Queue\\Beanstalk\\Job::__wakeup() - possible break-in attempt!"
+			);
+		}
     }
 
 }

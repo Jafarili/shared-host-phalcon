@@ -90,6 +90,19 @@ abstract class Db {
 	 **/
     public static function setup($options ) {
 
+		/**
+		 * Enables/Disables globally the escaping of SQL identif (iers
+		 */
+		if ( fetch escapeIdentif (iers, options["escapeSqlIdentif (iers"] ) {
+			globals_set("db.escape_identif (iers", escapeIdentif (iers);
+		}
+
+		/**
+		 * Force cast bound values in the PHP userland
+		 */
+		if ( fetch for (ceCasting, options["for (ceCasting"] ) ) {
+			globals_set("db.for (ce_casting", for (ceCasting);
+		}
     }
 
 }

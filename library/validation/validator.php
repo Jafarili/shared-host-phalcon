@@ -22,7 +22,7 @@ abstract class Validator {
 	 * Phalcon\Validation\Validator constructor
 	 **/
     public function __construct($options  = null ) {
-
+		$this->_options = options;
     }
 
     /***
@@ -32,14 +32,14 @@ abstract class Validator {
 	 * @see \Phalcon\Validation\Validator::hasOption()
 	 **/
     public function isSetOption($key ) {
-
+		return isset $this->_options[key];
     }
 
     /***
 	 * Checks if an option is defined
 	 **/
     public function hasOption($key ) {
-
+		return isset $this->_options[key];
     }
 
     /***
@@ -47,14 +47,31 @@ abstract class Validator {
 	 * Returns null if the option hasn't set
 	 **/
     public function getOption($key , $defaultValue  = null ) {
+		$options = $this->_options;
 
+		if ( gettype($options) == "array" ) {
+			if ( fetch value, options[key] ) {
+				/*
+				 * If we have attribute it means it's Uniqueness validator, we
+				 * can have here multiple fields, so we need to check it
+				 */
+				if ( key == "attribute" && gettype($value) == "array" ) {
+					if ( fetch fieldValue, value[key] ) {
+						return fieldValue;
+					}
+				}
+				return value;
+			}
+		}
+
+		return defaultValue;
     }
 
     /***
 	 * Sets an option in the validator
 	 **/
     public function setOption($key , $value ) {
-
+		$this->_options[key] = value;
     }
 
     /***
@@ -69,6 +86,16 @@ abstract class Validator {
 	 **/
     protected function prepareLabel($validation , $field ) {
 
+		$label = $this->getOption("label");
+		if ( gettype($label) == "array" ) {
+			$label = label[field];
+		}
+
+		if ( empty label ) {
+			$label = validation->getLabel(field);
+		}
+
+		return label;
     }
 
     /***
@@ -76,6 +103,16 @@ abstract class Validator {
 	 **/
     protected function prepareMessage($validation , $field , $type , $option  = message ) {
 
+		$message = $this->getOption(option);
+		if ( gettype($message) == "array" ) {
+			$message = message[field];
+		}
+
+		if ( empty message ) {
+			$message = validation->getDefaultMessage(type);
+		}
+
+		return message;
     }
 
     /***
@@ -83,6 +120,12 @@ abstract class Validator {
 	 **/
     protected function prepareCode($field ) {
 
+		$code = $this->getOption("code");
+		if ( gettype($code) == "array" ) {
+			$code = code[field];
+		}
+
+		return code;
     }
 
 }

@@ -34,7 +34,11 @@ class Files extends Adapter {
 	 * @param array options
 	 **/
     public function __construct($options  = null ) {
-
+		if ( gettype($options) == "array" ) {
+			if ( fetch annotationsDir, options["annotationsDir"] ) {
+				$this->_annotationsDir = annotationsDir;
+			}
+		}
     }
 
     /***
@@ -45,6 +49,16 @@ class Files extends Adapter {
 	 **/
     public function read($key ) {
 
+		/**
+		 * Paths must be normalized befor (e be used as keys
+		 */
+		$path = $this->_annotationsDir . prepare_virtual_path(key, "_") . ".php";
+
+		if ( file_exists(path) ) {
+			return require path;
+		}
+
+		return false;
     }
 
     /***
@@ -52,6 +66,14 @@ class Files extends Adapter {
 	 **/
     public function write($key , $data ) {
 
+		/**
+		 * Paths must be normalized befor (e be used as keys
+		 */
+		$path = $this->_annotationsDir . prepare_virtual_path(key, "_") . ".php";
+
+		if ( (file_put_contents(path, "<?php return " . var_export(data, true) . "; ") === false) ) {
+	  		throw new Exception("Annotations directory cannot be written");
+		}
     }
 
 }

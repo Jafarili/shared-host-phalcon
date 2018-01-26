@@ -22,7 +22,8 @@ class Failed extends Exception {
 	 * Phalcon\Mvc\Model\Transaction\Failed constructor
 	 **/
     public function __construct($message , $record  = null ) {
-
+		$this->_record = record;
+		parent::__construct(message);
     }
 
     /***
@@ -30,13 +31,19 @@ class Failed extends Exception {
 	 **/
     public function getRecordMessages() {
 
+		$record = $this->_record;
+		if ( record !== null ) {
+			return record->getMessages();
+		}
+
+		return $this->getMessage();
     }
 
     /***
 	 * Returns validation record messages which stop the transaction
 	 **/
     public function getRecord() {
-
+		return $this->_record;
     }
 
 }

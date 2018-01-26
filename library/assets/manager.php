@@ -37,28 +37,32 @@ class Manager {
 	 * @param array options
 	 **/
     public function __construct($options  = null ) {
-
+		if ( gettype($options) == "array" ) {
+			$this->_options = options;
+		}
     }
 
     /***
 	 * Sets the manager options
 	 **/
     public function setOptions($options ) {
-
+		$this->_options = options;
+		return this;
     }
 
     /***
 	 * Returns the manager options
 	 **/
     public function getOptions() {
-
+		return $this->_options;
     }
 
     /***
 	 * Sets if the HTML generated must be directly printed or returned
 	 **/
     public function useImplicitOutput($implicitOutput ) {
-
+		$this->_implicitOutput = implicitOutput;
+		return this;
     }
 
     /***
@@ -70,14 +74,16 @@ class Manager {
 	*</code>
 	**/
     public function addCss($path , $local  = true , $filter  = true , $attributes  = null ) {
-
+		this->addResourceByType("css", new ResourceCss(path, local, filter, attributes));
+		return this;
     }
 
     /***
 	 * Adds an inline Css to the 'css' collection
 	 **/
     public function addInlineCss($content , $filter  = true , $attributes  = null ) {
-
+		this->addInlineCodeByType("css", new InlineCss(content, filter, attributes));
+		return this;
     }
 
     /***
@@ -89,14 +95,16 @@ class Manager {
 	 *</code>
 	 **/
     public function addJs($path , $local  = true , $filter  = true , $attributes  = null ) {
-
+		this->addResourceByType("js", new ResourceJs(path, local, filter, attributes));
+		return this;
     }
 
     /***
 	 * Adds an inline javascript to the 'js' collection
 	 **/
     public function addInlineJs($content , $filter  = true , $attributes  = null ) {
-
+		this->addInlineCodeByType("js", new InlineJs(content, filter, attributes));
+		return this;
     }
 
     /***
@@ -110,6 +118,17 @@ class Manager {
 	 **/
     public function addResourceByType($type , $resource ) {
 
+		if ( !fetch collection, $this->_collections[type] ) {
+			$collection = new Collection();
+			$this->_collections[type] = collection;
+		}
+
+		/**
+		 * Add the resource to the collection
+		 */
+		collection->add($resource);
+
+		return this;
     }
 
     /***
@@ -117,6 +136,17 @@ class Manager {
 	 **/
     public function addInlineCodeByType($type , $code ) {
 
+		if ( !fetch collection, $this->_collections[type] ) {
+			$collection = new Collection();
+			$this->_collections[type] = collection;
+		}
+
+		/**
+		 * Add the inline code to the collection
+		 */
+		collection->addInline(code);
+
+		return this;
     }
 
     /***
@@ -129,14 +159,16 @@ class Manager {
 	 *</code>
 	 **/
     public function addResource($resource ) {
-
+		this->addResourceByType($resource->getType(), $resource);
+		return this;
     }
 
     /***
 	 * Adds a raw inline code to the manager
 	 **/
     public function addInlineCode($code ) {
-
+		this->addInlineCodeByType(code->getType(), code);
+		return this;
     }
 
     /***
@@ -147,7 +179,8 @@ class Manager {
 	 *</code>
 	 **/
     public function set($id , $collection ) {
-
+		$this->_collections[id] = collection;
+		return this;
     }
 
     /***
@@ -159,6 +192,11 @@ class Manager {
 	 **/
     public function get($id ) {
 
+		if ( !fetch collection, $this->_collections[id] ) {
+			throw new Exception("The collection does not exist in the manager");
+		}
+
+		return collection;
     }
 
     /***
@@ -166,6 +204,14 @@ class Manager {
 	 **/
     public function getCss() {
 
+		/**
+		 * Check if ( the collection does not exist and create an implicit collection
+		 */
+		if ( !fetch collection, $this->_collections["css"] ) {
+			return new Collection();
+		}
+
+		return collection;
     }
 
     /***
@@ -173,6 +219,14 @@ class Manager {
 	 **/
     public function getJs() {
 
+		/**
+		 * Check if ( the collection does not exist and create an implicit collection
+		 */
+		if ( !fetch collection, $this->_collections["js"] ) {
+			return new Collection();
+		}
+
+		return collection;
     }
 
     /***
@@ -180,10 +234,22 @@ class Manager {
 	 **/
     public function collection($name ) {
 
+		if ( !fetch collection, $this->_collections[name] ) {
+			$collection = new Collection();
+			$this->_collections[name] = collection;
+		}
+
+		return collection;
     }
 
     public function collectionResourcesByType($resources , $type ) {
+		foreach ( $resources as $$resource ) {
+			if ( $resource->getType() == type ) {
+				$$filtered[] = $resource;
+			}
+		}
 
+		return $filtered;
     }
 
     /***
@@ -194,7 +260,402 @@ class Manager {
 	 * @param string type
 	 **/
     public function output($collection , $callback , $type ) {
+			targetBasePath = null, options, collectionSourcePath, completeSourcePath,
+			collectionTargetPath, completeTargetPath, filteredJoinedContent, join,
+			$resource, filterNeeded, local, sourcePath, targetPath, path, prefixedPath,
+			attributes, parameters, html, useImplicitOutput, content, mustFilter,
+			filter, filteredContent, typeCss, targetUri;
 
+		$useImplicitOutput = $this->_implicitOutput;
+
+		$output = "";
+
+		/**
+		 * Get the resources as an array
+		 */
+		$resources = $this->collectionResourcesByType(collection->getResources(), type);
+
+		/**
+		 * Get filters in the collection
+		 */
+		$filters = collection->getFilters();
+
+		/**
+		 * Get the collection's prefix
+		 */
+		$prefix = collection->getPrefix();
+
+		$typeCss = "css";
+
+		/**
+		 * Prepare options if ( the collection must be filtered
+		 */
+		if ( count(filters) ) {
+
+			$options = $this->_options;
+
+			/**
+			 * Check foreach ( global $the as $options assets manager
+			 */
+			if ( gettype($options) == "array" ) {
+
+				/**
+				 * The source base path is a global location where all resources are located
+				 */
+
+				/**
+				 * The target base path is a global location where all resources are written
+				 */
+			}
+
+			/**
+			 * Check if ( the collection have its own source base path
+			 */
+			$collectionSourcePath = collection->getSourcePath();
+
+			/**
+			 * Concatenate the global base source path with the collection one
+			 */
+			if ( collectionSourcePath ) {
+				$completeSourcePath = sourceBasePath . collectionSourcePath;
+			} else {
+				$completeSourcePath = sourceBasePath;
+			}
+
+			/**
+			 * Check if ( the collection have its own target base path
+			 */
+			$collectionTargetPath = collection->getTargetPath();
+
+			/**
+			 * Concatenate the global base source path with the collection one
+			 */
+			if ( collectionTargetPath ) {
+				$completeTargetPath = targetBasePath . collectionTargetPath;
+			} else {
+				$completeTargetPath = targetBasePath;
+			}
+
+			/**
+			 * Global filtered content
+			 */
+			$filteredJoinedContent = "";
+
+			/**
+			 * Check if ( the collection have its own target base path
+			 */
+			$join = collection->getJoin();
+
+			/**
+			 * Check for ( valid target paths if ( the collection must be joined
+			 */
+			if ( join ) {
+				/**
+				* We need a valid final target path
+				*/
+				if ( !completeTargetPath ) {
+					throw new Exception("Path '". completeTargetPath. "' is not a valid target path (1)");
+				}
+
+				if ( is_dir(completeTargetPath) ) {
+					throw new Exception("Path '". completeTargetPath. "' is not a valid target path (2), is dir.");
+				}
+			}
+		}
+
+		/**
+		 * walk in resources
+		 */
+		foreach ( $resources as $$resource ) {
+
+			$filterNeeded = false;
+			$type = $resource->getType();
+
+			/**
+			 * Is the resource local?
+			 */
+			$local = $resource->getLocal();
+
+			/**
+			 * If the collection must not be joined we must print a HTML for ( each one
+			 */
+			if ( count(filters) ) {
+				if ( local ) {
+
+					/**
+					 * Get the complete path
+					 */
+					$sourcePath = $resource->getRealSourcePath(completeSourcePath);
+
+					/**
+					 * We need a valid source path
+					 */
+					if ( !sourcePath ) {
+						$sourcePath = $resource->getPath();
+						throw new Exception("Resource '". sourcePath. "' does not have a valid source path");
+					}
+				} else {
+
+					/**
+					 * Get the complete source path
+					 */
+					$sourcePath = $resource->getPath();
+
+					/**
+					 * resources paths are always filtered
+					 */
+					$filterNeeded = true;
+				}
+
+				/**
+				 * Get the target path, we need to write the filtered content to a file
+				 */
+				$targetPath = $resource->getRealTargetPath(completeTargetPath);
+
+				/**
+				 * We need a valid final target path
+				 */
+				if ( !targetPath ) {
+					throw new Exception("Resource '". sourcePath. "' does not have a valid target path");
+				}
+
+				if ( local ) {
+
+					/**
+					 * Make sure the target path is not the same source path
+					 */
+					if ( targetPath == sourcePath ) {
+						throw new Exception("Resource '". targetPath. "' have the same source and target paths");
+					}
+
+					if ( file_exists(targetPath) ) {
+						if ( compare_mtime(targetPath, sourcePath) ) {
+							$filterNeeded = true;
+						}
+					} else {
+						$filterNeeded = true;
+					}
+				}
+			} else {
+
+				/**
+				 * If there are not filters, just print/buffer the HTML
+				 */
+				$path = $resource->getRealTargetUri();
+
+				if ( prefix ) {
+					$prefixedPath = prefix . path;
+				} else {
+					$prefixedPath = path;
+				}
+
+				/**
+				 * Gets extra HTML attributes in the resource
+				 */
+				$attributes = $resource->getAttributes();
+
+				/**
+				 * Prepare the parameters for ( the callback
+				 */
+				$parameters = [];
+				if ( gettype($attributes) == "array" ) {
+					$attributes[0] = prefixedPath;
+					$parameters[] = attributes;
+				} else {
+					$parameters[] = prefixedPath;
+				}
+				$parameters[] = local;
+
+				/**
+				 * Call the callback to generate the HTML
+				 */
+				$html = call_user_func_array(callback, parameters);
+
+				/**
+				 * Implicit output prints the content directly
+				 */
+				if ( useImplicitOutput == true ) {
+					echo html;
+				} else {
+					$output .= html;
+				}
+
+				continue;
+			}
+
+			if ( filterNeeded == true ) {
+
+				/**
+				 * Gets the resource's content
+				 */
+				$content = $resource->getContent(completeSourcePath);
+
+				/**
+				 * Check if ( the resource must be filtered
+				 */
+				$mustFilter = $resource->getFilter();
+
+				/**
+				 * Only filter the resource if ( it's marked as 'filterable'
+				 */
+				if ( mustFilter == true ) {
+					foreach ( $filters as $filter ) {
+
+						/**
+						 * Filters must be valid objects
+						 */
+						if ( gettype($filter) != "object" ) {
+							throw new Exception("Filter is invalid");
+						}
+
+						/**
+						 * Calls the method 'filter' which must return a filtered version of the content
+						 */
+						$filteredContent = filter->filter(content),
+							content = filteredContent;
+					}
+					/**
+					 * Update the joined filtered content
+					 */
+					if ( join == true ) {
+						if ( type == typeCss ) {
+							$filteredJoinedContent .= filteredContent;
+						} else {
+							$filteredJoinedContent .= filteredContent . ";";
+						}
+					}
+				} else {
+
+					/**
+					 * Update the joined filtered content
+					 */
+					if ( join == true ) {
+						$filteredJoinedContent .= content;
+					} else {
+						$filteredContent = content;
+					}
+				}
+
+				if ( !join ) {
+					/**
+					 * Write the file using file-put-contents. This respects the openbase-dir also
+					 * writes to streams
+					 */
+					file_put_contents(targetPath, filteredContent);
+				}
+			}
+
+			if ( !join ) {
+
+				/**
+				 * Generate the HTML using the original path in the resource
+				 */
+				$path = $resource->getRealTargetUri();
+
+				if ( prefix ) {
+					$prefixedPath = prefix . path;
+				} else {
+					$prefixedPath = path;
+				}
+
+				/**
+				 * Gets extra HTML attributes in the resource
+				 */
+				$attributes = $resource->getAttributes();
+
+				/**
+				 * Filtered resources are always local
+				 */
+				$local = true;
+
+				/**
+				 * Prepare the parameters for ( the callback
+				 */
+				$parameters = [];
+				if ( gettype($attributes) == "array" ) {
+					$attributes[0] = prefixedPath;
+					$parameters[] = attributes;
+				} else {
+					$parameters[] = prefixedPath;
+				}
+				$parameters[] = local;
+
+				/**
+				* Call the callback to generate the HTML
+				*/
+				$html = call_user_func_array(callback, parameters);
+
+				/**
+				* Implicit output prints the content directly
+				*/
+				if ( useImplicitOutput == true ) {
+					echo html;
+				} else {
+					$output .= html;
+				}
+			}
+		}
+
+		if ( count(filters) ) {
+
+			if ( join == true ) {
+
+				/**
+				 * Write the file using file_put_contents. This respects the openbase-dir also
+				 * writes to streams
+				 */
+				file_put_contents(completeTargetPath, filteredJoinedContent);
+
+				/**
+				 * Generate the HTML using the original path in the resource
+				 */
+				$targetUri = collection->getTargetUri();
+
+				if ( prefix ) {
+					$prefixedPath = prefix . targetUri;
+				} else {
+					$prefixedPath = targetUri;
+				}
+
+				/**
+				 * Gets extra HTML attributes in the collection
+				 */
+				$attributes = collection->getAttributes();
+
+				/**
+				 *  Gets local
+				 */
+				$local = collection->getTargetLocal();
+
+				/**
+				 * Prepare the parameters for ( the callback
+				 */
+				$parameters = [];
+				if ( gettype($attributes) == "array" ) {
+					$attributes[0] = prefixedPath;
+					$parameters[] = attributes;
+				} else {
+					$parameters[] = prefixedPath;
+				}
+				$parameters[] = local;
+
+				/**
+				 * Call the callback to generate the HTML
+				 */
+				$html = call_user_func_array(callback, parameters);
+
+				/**
+				 * Implicit output prints the content directly
+				 */
+				if ( useImplicitOutput == true ) {
+					echo html;
+				} else {
+					$output .= html;
+				}
+			}
+		}
+
+		return output;
     }
 
     /***
@@ -205,6 +666,55 @@ class Manager {
 	 **/
     public function outputInline($collection , $type ) {
 
+		$output = "",
+			html = "",
+			joinedContent = "";
+
+		$codes = collection->getCodes(),
+			filters = collection->getFilters(),
+			join = collection->getJoin() ;
+
+		if ( count(codes) ) {
+			foreach ( $codes as $code ) {
+				$attributes = code->getAttributes(),
+					content = code->getContent();
+
+				foreach ( $filters as $filter ) {
+					/**
+					 * Filters must be valid objects
+					 */
+					if ( gettype($filter) != "object" ) {
+						throw new Exception("Filter is invalid");
+					}
+
+					/**
+					 * Calls the method 'filter' which must return a filtered version of the content
+					 */
+					$content = filter->filter(content);
+				}
+
+				if ( join ) {
+					$joinedContent .= content;
+				} else {
+					$html .= Tag::tagHtml(type, attributes, false, true) . content . Tag::tagHtmlClose(type, true);
+				}
+			}
+
+			if ( join ) {
+				$html .= Tag::tagHtml(type, attributes, false, true) . joinedContent . Tag::tagHtmlClose(type, true);
+			}
+
+			/**
+			 * Implicit output prints the content directly
+			 */
+			if ( $this->_implicitOutput == true ) {
+				echo html;
+			} else {
+				$output .= html;
+			}
+		}
+
+		return output;
     }
 
     /***
@@ -214,6 +724,13 @@ class Manager {
 	 **/
     public function outputCss($collectionName  = null ) {
 
+		if ( !collectionName ) {
+			$collection = $this->getCss();
+		} else {
+			$collection = $this->get(collectionName);
+		}
+
+		return $this->output(collection, ["Phalcon\\Tag", "stylesheetLink"], "css");
     }
 
     /***
@@ -223,6 +740,13 @@ class Manager {
 	 **/
     public function outputInlineCss($collectionName  = null ) {
 
+		if ( !collectionName ) {
+			$collection = $this->getCss();
+		} else {
+			$collection = $this->get(collectionName);
+		}
+
+		return $this->outputInline(collection, "style");
     }
 
     /***
@@ -232,6 +756,13 @@ class Manager {
 	 **/
     public function outputJs($collectionName  = null ) {
 
+		if ( !collectionName ) {
+			$collection = $this->getJs();
+		} else {
+			$collection = $this->get(collectionName);
+		}
+
+		return $this->output(collection, ["Phalcon\\Tag", "javascriptInclude"], "js");
     }
 
     /***
@@ -241,13 +772,20 @@ class Manager {
 	 **/
     public function outputInlineJs($collectionName  = null ) {
 
+		if ( !collectionName ) {
+			$collection = $this->getJs();
+		} else {
+			$collection = $this->get(collectionName);
+		}
+
+		return $this->outputInline(collection, "script");
     }
 
     /***
 	 * Returns existing collections in the manager
 	 **/
     public function getCollections() {
-
+		return $this->_collections;
     }
 
     /***
@@ -261,7 +799,7 @@ class Manager {
 	 * </code>
 	 **/
     public function exists($id ) {
-
+		return isset $this->_collections[id];
     }
 
 }

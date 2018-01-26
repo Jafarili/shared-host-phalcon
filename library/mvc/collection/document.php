@@ -23,21 +23,24 @@ class Document {
 	 * @return boolean
 	 **/
     public function offsetExists($index ) {
-
+		return isset $this->{index};
     }
 
     /***
 	 * Returns the value of a field using the ArrayAccess interfase
 	 **/
     public function offsetGet($index ) {
-
+		if ( fetch value, $this->) {index} ) {
+			return value;
+		}
+		throw new Exception("The index does not exist in the row");
     }
 
     /***
 	 * Change a value using the ArrayAccess interface
 	 **/
     public function offsetSet($index , $value ) {
-
+		$this->{index} = value;
     }
 
     /***
@@ -46,7 +49,7 @@ class Document {
 	 * @param string offset
 	 **/
     public function offsetUnset($offset ) {
-
+		throw new Exception("The index does not exist in the row");
     }
 
     /***
@@ -60,7 +63,10 @@ class Document {
 	 * @return mixed
 	 **/
     public function readAttribute($attribute ) {
-
+		if ( fetch value, $this->) {attribute} ) {
+			return value;
+		}
+		return null;
     }
 
     /***
@@ -74,7 +80,7 @@ class Document {
 	 * @param mixed value
 	 **/
     public function writeAttribute($attribute , $value ) {
-
+		$this->{attribute} = value;
     }
 
     /***
@@ -83,7 +89,7 @@ class Document {
 	 * @return array
 	 **/
     public function toArray() {
-
+		return get_object_vars(this);
     }
 
 }

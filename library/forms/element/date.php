@@ -21,7 +21,7 @@ class Date extends Element {
 	 * @param array attributes
 	 **/
     public function render($attributes  = null ) {
-
+		return Tag::dateField(this->prepareAttributes(attributes));
     }
 
 }

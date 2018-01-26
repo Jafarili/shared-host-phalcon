@@ -20,7 +20,7 @@ class Jsmin {
 	 * Filters the content using JSMIN
 	 **/
     public function filter($content ) {
-
+		return phalcon_jsmin(content);
     }
 
 }

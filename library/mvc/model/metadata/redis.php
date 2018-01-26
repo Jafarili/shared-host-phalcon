@@ -46,6 +46,34 @@ class Redis extends MetaData {
 	 **/
     public function __construct($options  = null ) {
 
+		if ( gettype($options) != "array" ) {
+			$options = [];
+		}
+
+		if ( !isset options["host"] ) {
+			$options["host"] = "127.0.0.1";
+		}
+
+		if ( !isset options["port"] ) {
+			$options["port"] = 6379;
+		}
+
+		if ( !isset options["persistent"] ) {
+			$options["persistent"] = 0;
+		}
+
+		if ( !isset options["statsKey"] ) {
+			$options["statsKey"] = "_PHCM_MM";
+		}
+
+		if ( fetch ttl, options["lif (etime"] ) {
+			$this->_ttl = ttl;
+		}
+
+		$this->_redis = new Redis(
+			new FrontendData(["lif (etime": $this->_ttl]),
+			options
+		);
     }
 
     /***
@@ -53,13 +81,18 @@ class Redis extends MetaData {
 	 **/
     public function read($key ) {
 
+		$data = $this->_redis->get(key);
+		if ( gettype($data) == "array" ) {
+			return data;
+		}
+		return null;
     }
 
     /***
 	 * Writes the metadata to Redis
 	 **/
     public function write($key , $data ) {
-
+		this->_redis->save(key, data);
     }
 
     /***
@@ -67,6 +100,18 @@ class Redis extends MetaData {
 	 **/
     public function reset() {
 
+		$meta = $this->_metaData;
+
+		if ( gettype($meta) == "array" ) {
+
+			foreach ( key, $meta as $_ ) {
+				$realKey = "meta-" . key;
+
+				this->_redis->delete(realKey);
+			}
+		}
+
+		parent::reset();
     }
 
 }

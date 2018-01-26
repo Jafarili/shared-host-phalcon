@@ -45,49 +45,49 @@ class Dispatcher extends BaseDispatcher {
 	 * Sets the default controller suffix
 	 **/
     public function setControllerSuffix($controllerSuffix ) {
-
+		$this->_handlerSuffix = controllerSuffix;
     }
 
     /***
 	 * Sets the default controller name
 	 **/
     public function setDefaultController($controllerName ) {
-
+		$this->_defaultHandler = controllerName;
     }
 
     /***
 	 * Sets the controller name to be dispatched
 	 **/
     public function setControllerName($controllerName ) {
-
+		$this->_handlerName = controllerName;
     }
 
     /***
 	 * Gets last dispatched controller name
 	 **/
     public function getControllerName() {
-
+		return $this->_handlerName;
     }
 
     /***
 	 * Gets previous dispatched namespace name
 	 **/
     public function getPreviousNamespaceName() {
-
+		return $this->_previousNamespaceName;
     }
 
     /***
 	 * Gets previous dispatched controller name
 	 **/
     public function getPreviousControllerName() {
-
+		return $this->_previousHandlerName;
     }
 
     /***
 	 * Gets previous dispatched action name
 	 **/
     public function getPreviousActionName() {
-
+		return $this->_previousActionName;
     }
 
     /***
@@ -95,13 +95,46 @@ class Dispatcher extends BaseDispatcher {
 	 **/
     protected function _throwDispatchException($message , $exceptionCode  = 0 ) {
 
+		$dependencyInjector = $this->_dependencyInjector;
+		if ( gettype($dependencyInjector) != "object" ) {
+			throw new Exception(
+				"A dependency injection container is required to access the 'response' service",
+				BaseDispatcher::EXCEPTION_NO_DI
+			);
+		}
+
+		$response = <ResponseInterface> dependencyInjector->getShared("response");
+
+		/**
+		 * Dispatcher exceptions automatically sends a 404 status
+		 */
+		response->setStatusCode(404, "Not Found");
+
+		/**
+		 * Create the real exception
+		 */
+		$exception = new Exception(message, exceptionCode);
+
+		if ( $this->_handleException(exception) === false ) {
+			return false;
+		}
+
+		/**
+		 * Throw the exception if ( it wasn't handled
+		 */
+		throw exception;
     }
 
     /***
 	 * Handles a user exception
 	 **/
     protected function _handleException($exception ) {
-
+		$eventsManager = <ManagerInterface> $this->_eventsManager;
+		if ( gettype($eventsManager) == "object" ) {
+			if ( eventsManager->fire("dispatch:befor (eException", this, exception) === false ) ) {
+				return false;
+			}
+		}
     }
 
     /***
@@ -160,27 +193,33 @@ class Dispatcher extends BaseDispatcher {
 	 **/
     public function forward($forward ) {
 
+		$eventsManager = <ManagerInterface> $this->_eventsManager;
+		if ( gettype($eventsManager) == "object" ) {
+			eventsManager->fire("dispatch:befor (eForward", this, for (ward);
+		}
+
+		parent::for (ward(for (ward);
     }
 
     /***
 	 * Possible controller class name that will be located to dispatch the request
 	 **/
     public function getControllerClass() {
-
+		return $this->getHandlerClass();
     }
 
     /***
 	 * Returns the latest dispatched controller
 	 **/
     public function getLastController() {
-
+		return $this->_lastHandler;
     }
 
     /***
 	 * Returns the active controller in the dispatcher
 	 **/
     public function getActiveController() {
-
+		return $this->_activeHandler;
     }
 
 }

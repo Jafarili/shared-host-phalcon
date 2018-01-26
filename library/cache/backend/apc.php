@@ -48,6 +48,15 @@ class Apc extends Backend {
 	 **/
     public function get($keyName , $lifetime  = null ) {
 
+		$prefixedKey = "_PHCA" . $this->_prefix . keyName,
+			this->_lastKey = prefixedKey;
+
+		$cachedContent = apc_fetch(prefixedKey);
+		if ( cachedContent === false ) {
+			return null;
+		}
+
+		return $this->_frontend->afterRetrieve(cachedContent);
     }
 
     /***
@@ -60,6 +69,66 @@ class Apc extends Backend {
 	 **/
     public function save($keyName  = null , $content  = null , $lifetime  = null , $stopBuffer  = true ) {
 
+		if ( keyName === null ) {
+			$lastKey = $this->_lastKey;
+		} else {
+			$lastKey = "_PHCA" . $this->_prefix . keyName;
+		}
+
+		if ( !lastKey ) {
+			throw new Exception("Cache must be started first");
+		}
+
+		$frontend = $this->_frontend;
+		if ( content === null ) {
+			$cachedContent = frontend->getContent();
+		} else {
+			$cachedContent = content;
+		}
+
+		if ( !is_numeric(cachedContent) ) {
+			$preparedContent = frontend->befor (eStore(cachedContent);
+		} else {
+			$preparedContent = cachedContent;
+		}
+
+		/**
+		 * Take the lif (etime from the frontend or read it from the set in start()
+		 */
+		if ( lif (etime === null ) {
+			$lif (etime = $this->_lastLif (etime;
+			if ( lif (etime === null ) {
+				$ttl = frontend->getLif (etime();
+			} else {
+				$ttl = lif (etime,
+					this->_lastKey = lastKey;
+			}
+		} else {
+			$ttl = lif (etime;
+		}
+
+		/**
+		 * Call apc_store in the PHP userland since most of the time it isn't available at compile time
+		 */
+		$success = apc_store(lastKey, preparedContent, ttl);
+
+		if ( !success ) {
+			throw new Exception("Failed storing data in apc");
+		}
+
+		$isBuffering = frontend->isBuffering();
+
+		if ( stopBuffer === true ) {
+			frontend->stop();
+		}
+
+		if ( isBuffering === true ) {
+			echo cachedContent;
+		}
+
+		$this->_started = false;
+
+		return success;
     }
 
     /***
@@ -69,6 +138,23 @@ class Apc extends Backend {
 	 **/
     public function increment($keyName  = null , $value  = 1 ) {
 
+		$prefixedKey = "_PHCA" . $this->_prefix . keyName;
+		$this->_lastKey = prefixedKey;
+
+		if ( function_exists("apc_inc") ) {
+			$result = apc_inc(prefixedKey, value);
+			return result;
+		} else {
+			$cachedContent = apc_fetch(prefixedKey);
+
+			if ( is_numeric(cachedContent) ) {
+				$result = cachedContent + value;
+				this->save(keyName, result);
+				return result;
+			}
+		}
+
+		return false;
     }
 
     /***
@@ -78,13 +164,29 @@ class Apc extends Backend {
 	 **/
     public function decrement($keyName  = null , $value  = 1 ) {
 
+		$lastKey = "_PHCA" . $this->_prefix . keyName,
+			this->_lastKey = lastKey;
+
+		if ( function_exists("apc_dec") ) {
+			return apc_dec(lastKey, value);
+		} else {
+			$cachedContent = apc_fetch(lastKey);
+
+			if ( is_numeric(cachedContent) ) {
+				$result = cachedContent - value;
+				this->save(keyName, result);
+				return result;
+			}
+		}
+
+		return false;
     }
 
     /***
 	 * Deletes a value from the cache by its key
 	 **/
     public function delete($keyName ) {
-
+		return apc_delete("_PHCA" . $this->_prefix . keyName);
     }
 
     /***
@@ -99,6 +201,20 @@ class Apc extends Backend {
 	 **/
     public function queryKeys($prefix  = null ) {
 
+		if ( empty prefix ) {
+			$prefixPattern = "/^_PHCA/";
+		} else {
+			$prefixPattern = "/^_PHCA" . prefix . "/";
+		}
+
+		$keys = [],
+			apc = new \APCIterator("user", prefixPattern);
+
+		foreach ( key, $iterator(apc) as $_ ) {
+			$keys[] = substr(key, 5);
+		}
+
+		return keys;
     }
 
     /***
@@ -109,6 +225,19 @@ class Apc extends Backend {
 	 **/
     public function exists($keyName  = null , $lifetime  = null ) {
 
+		if ( keyName === null ) {
+			$lastKey = $this->_lastKey;
+		} else {
+			$lastKey = "_PHCA" . $this->_prefix . keyName;
+		}
+
+		if ( lastKey ) {
+			if ( apc_exists(lastKey) !== false ) {
+				return true;
+			}
+		}
+
+		return false;
     }
 
     /***
@@ -127,6 +256,13 @@ class Apc extends Backend {
 	 **/
     public function flush() {
 
+		$prefixPattern = "/^_PHCA" . $this->_prefix . "/";
+
+		foreach ( $iterator(new as $item \APCIterator("user", prefixPattern)) ) {
+			apc_delete(item["key"]);
+		}
+
+		return true;
     }
 
 }

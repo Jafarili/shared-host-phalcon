@@ -57,6 +57,34 @@ class Ini extends Config {
 	 **/
     public function __construct($filePath , $mode  = null ) {
 
+		// Default to INI_SCANNER_RAW if ( not specif (ied
+		if ( null === mode ) {
+			$mode = INI_SCANNER_RAW;
+		}
+
+		$iniConfig = parse_ini_file(filePath, true, mode);
+		if ( iniConfig === false ) {
+			throw new Exception("Configuration file " . basename(filePath) . " can't be loaded");
+		}
+
+
+		$config = [];
+
+		foreach ( section, $iniConfig as $directives ) {
+			if ( gettype($directives) == "array" ) {
+				$sections = [];
+				foreach ( path, $directives as $lastValue ) {
+					$sections[] = $this->_parseIniString((string)path, lastValue);
+				}
+				if ( count(sections) ) {
+					$config[section] = call_user_func_array("array_merge_recursive", sections);
+				}
+			} else {
+				$config[section] = $this->_cast(directives);
+			}
+		}
+
+		parent::__construct(config);
     }
 
     /***
@@ -76,7 +104,17 @@ class Ini extends Config {
 	 * </code>
 	 **/
     protected function _parseIniString($path , $value ) {
+		$value = $this->_cast(value);
+		$pos = strpos(path, ".");
 
+		if ( pos === false ) {
+			return [path: value];
+		}
+
+		$key = substr(path, 0, pos);
+		$path = substr(path, pos + 1);
+
+		return [key: $this->_parseIniString(path, value)];
     }
 
     /***
@@ -85,7 +123,37 @@ class Ini extends Config {
 	 * @param mixed ini The array casted by `parse_ini_file`
 	 **/
     protected function _cast($ini ) {
+		if ( gettype($ini) == "array" ) {
+			for ( key, val in ini) {
+				$ini[key] = $this->_cast(val);
+			}
+		}
+		if ( gettype($ini) == "string" ) {
+			// Decode true
+			if ( ini === "true" || ini === "yes" || strtolower(ini) === "on") {
+				return true;
+			}
 
+			// Decode false
+			if ( ini === "false" || ini === "no" || strtolower(ini) === "off") {
+				return false;
+			}
+
+			// Decode null
+			if ( ini === "null" ) {
+				return null;
+			}
+
+			// Decode float/int
+			if ( is_numeric(ini) ) {
+				if ( preg_match("/[.]+/", ini) ) {
+					return (double) ini;
+				} else {
+					return (int) ini;
+				}
+			}
+		}
+		return ini;
     }
 
 }

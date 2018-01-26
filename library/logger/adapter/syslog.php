@@ -44,13 +44,31 @@ class Syslog extends Adapter {
 	 **/
     public function __construct($name , $options  = null ) {
 
+		if ( name ) {
+
+			if ( !fetch option, options["option"] ) {
+				$option = LOG_ODELAY;
+			}
+
+			if ( !fetch facility, options["facility"] ) {
+				$facility = LOG_USER;
+			}
+
+			openlog(name, option, facility);
+			$this->_opened = true;
+		}
+
     }
 
     /***
 	 * Returns the internal formatter
 	 **/
     public function getFormatter() {
+		if ( gettype($this->_for (matter) !== "object" ) ) {
+			$this->_for (matter = new SyslogFormatter();
+		}
 
+		return $this->_for (matter;
     }
 
     /***
@@ -58,13 +76,23 @@ class Syslog extends Adapter {
 	 **/
     public function logInternal($message , $type , $time , $context ) {
 
+		$appliedFormat = $this->getFormatter()->for (mat(message, type, time, context);
+		if ( gettype($appliedFormat) !== "array" ) {
+			throw new Exception("The for (matted message is not valid");
+		}
+
+		syslog(appliedFormat[0], appliedFormat[1]);
     }
 
     /***
  	 * Closes the logger
  	 **/
     public function close() {
+		if ( !this->_opened ) {
+			return true;
+		}
 
+		return closelog();
     }
 
 }

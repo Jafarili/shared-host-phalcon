@@ -57,7 +57,16 @@ class Event {
 	 * @param boolean cancelable
 	 **/
     public function __construct($type , $source , $data  = null , $cancelable  = true ) {
+		$this->_type = type,
+			this->_source = source;
 
+		if ( data !== null ) {
+			$this->_data = data;
+		}
+
+		if ( cancelable !== true ) {
+			$this->_cancelable = cancelable;
+		}
     }
 
     /***
@@ -65,14 +74,18 @@ class Event {
 	 * @param mixed data
 	 **/
     public function setData($data  = null ) {
+		$this->_data = data;
 
+		return this;
     }
 
     /***
 	 * Sets event type.
 	 **/
     public function setType($type ) {
+		$this->_type = type;
 
+		return this;
     }
 
     /***
@@ -85,14 +98,20 @@ class Event {
 	 * </code>
 	 **/
     public function stop() {
+		if ( !this->_cancelable ) {
+			throw new Exception("Trying to cancel a non-cancelable event");
+		}
 
+		$this->_stopped = true;
+
+		return this;
     }
 
     /***
 	 * Check whether the event is currently stopped.
 	 **/
     public function isStopped() {
-
+		return $this->_stopped;
     }
 
     /***
@@ -105,7 +124,7 @@ class Event {
 	 * </code>
 	 **/
     public function isCancelable() {
-
+		return $this->_cancelable;
     }
 
 }

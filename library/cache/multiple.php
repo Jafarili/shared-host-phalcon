@@ -79,14 +79,20 @@ class Multiple {
 	 * @param	Phalcon\Cache\BackendInterface[] backends
 	 **/
     public function __construct($backends  = null ) {
-
+		if ( gettype($backends) != "null" ) {
+			if ( gettype($backends) != "array" ) {
+				throw new Exception("The backends must be an array");
+			}
+			$this->_backends = backends;
+		}
     }
 
     /***
 	 * Adds a backend
 	 **/
     public function push($backend ) {
-
+		$this->_backends[] = backend;
+		return this;
     }
 
     /***
@@ -98,6 +104,14 @@ class Multiple {
 	 **/
     public function get($keyName , $lifetime  = null ) {
 
+		foreach ( $this->_backends as $backend ) {
+			$content = backend->get(keyName, lif (etime);
+			if ( content != null ) {
+				return content;
+			}
+		}
+
+		return null;
     }
 
     /***
@@ -108,6 +122,9 @@ class Multiple {
 	 **/
     public function start($keyName , $lifetime  = null ) {
 
+		foreach ( $this->_backends as $backend ) {
+			backend->start(keyName, lif (etime);
+		}
     }
 
     /***
@@ -120,6 +137,9 @@ class Multiple {
 	**/
     public function save($keyName  = null , $content  = null , $lifetime  = null , $stopBuffer  = null ) {
 
+		foreach ( $this->_backends as $backend ) {
+			backend->save(keyName, content, lif (etime, stopBuffer);
+		}
     }
 
     /***
@@ -130,6 +150,11 @@ class Multiple {
 	 **/
     public function delete($keyName ) {
 
+		foreach ( $this->_backends as $backend ) {
+			backend->delete(keyName);
+		}
+
+		return true;
     }
 
     /***
@@ -140,6 +165,13 @@ class Multiple {
 	 **/
     public function exists($keyName  = null , $lifetime  = null ) {
 
+		foreach ( $this->_backends as $backend ) {
+			if ( backend->exists(keyName, lif (etime) == true ) {
+				return true;
+			}
+		}
+
+		return false;
     }
 
     /***
@@ -147,6 +179,11 @@ class Multiple {
 	 **/
     public function flush() {
 
+		foreach ( $this->_backends as $backend ) {
+			backend->flush();
+		}
+
+		return true;
     }
 
 }

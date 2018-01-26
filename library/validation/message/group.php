@@ -27,7 +27,9 @@ class Group {
 	 * @param array messages
 	 **/
     public function __construct($messages  = null ) {
-
+		if ( gettype($messages) == "array" ) {
+			$this->_messages = messages;
+		}
     }
 
     /***
@@ -43,7 +45,10 @@ class Group {
 	 * @return \Phalcon\Validation\Message
 	 **/
     public function offsetGet($index ) {
-
+		if ( fetch message, $this->_messages[index] ) {
+			return message;
+		}
+		return false;
     }
 
     /***
@@ -57,7 +62,10 @@ class Group {
 	 * @param \Phalcon\Validation\Message message
 	 **/
     public function offsetSet($index , $message ) {
-
+		if ( gettype($message) != "object" ) {
+			throw new Exception("The message must be an object");
+		}
+		$this->_messages[index] = message;
     }
 
     /***
@@ -73,7 +81,7 @@ class Group {
 	 * @return boolean
 	 **/
     public function offsetExists($index ) {
-
+		return isset $this->_messages[index];
     }
 
     /***
@@ -84,7 +92,9 @@ class Group {
 	 *</code>
 	 **/
     public function offsetUnset($index ) {
-
+		if ( isset($this->_messages[index]) ) {
+			array_splice(this->_messages, index, 1);
+		}
     }
 
     /***
@@ -97,7 +107,7 @@ class Group {
 	 *</code>
 	 **/
     public function appendMessage($message ) {
-
+		$this->_messages[] = message;
     }
 
     /***
@@ -111,6 +121,39 @@ class Group {
 	 **/
     public function appendMessages($messages ) {
 
+		if ( gettype($messages) != "array" && gettype($messages) != "object" ) {
+			throw new Exception("The messages must be array or object");
+		}
+
+		$currentMessages = $this->_messages;
+		if ( gettype($messages) == "array" ) {
+
+			/**
+			 * An array of messages is simply merged into the current one
+			 */
+			if ( gettype($currentMessages) == "array" ) {
+				$finalMessages = array_merge(currentMessages, messages);
+			} else {
+				$finalMessages = messages;
+			}
+			$this->_messages = finalMessages;
+
+		} else {
+
+			/**
+			 * A group of messages is iterated and appended one-by-one to the current list
+			 */
+			//foreach ( $iterator(messages) as $message ) {
+			//	this->appendMessage(message);
+			//}
+
+			messages->rewind();
+			while messages->valid() {
+				$message = messages->current();
+				this->appendMessage(message);
+    			messages->next();
+			}
+		}
     }
 
     /***
@@ -121,48 +164,69 @@ class Group {
 	 **/
     public function filter($fieldName ) {
 
+		$filtered = [],
+			messages = $this->_messages;
+		if ( gettype($messages) == "array" ) {
+
+			/**
+			 * A group of messages is iterated and appended one-by-one to the current list
+			 */
+			foreach ( $messages as $message ) {
+
+				/**
+				 * Get the field name
+				 */
+				if ( method_exists(message, "getField") ) {
+					if ( fieldName == message->getField() ) {
+						$filtered[] = message;
+					}
+				}
+			}
+		}
+
+		return filtered;
     }
 
     /***
 	 * Returns the number of messages in the list
 	 **/
     public function count() {
-
+		return count(this->_messages);
     }
 
     /***
 	 * Rewinds the internal iterator
 	 **/
     public function rewind() {
-
+		$this->_position = 0;
     }
 
     /***
 	 * Returns the current message in the iterator
 	 **/
     public function current() {
-
+		return $this->_messages[this->_position];
     }
 
     /***
 	 * Returns the current position/key in the iterator
 	 **/
     public function key() {
-
+		return $this->_position;
     }
 
     /***
 	 * Moves the internal iteration pointer to the next position
 	 **/
     public function next() {
-
+		$this->_position++;
     }
 
     /***
 	 * Check if the current message in the iterator is valid
 	 **/
     public function valid() {
-
+		return isset $this->_messages[this->_position];
     }
 
     /***
@@ -172,7 +236,7 @@ class Group {
 	 * @return \Phalcon\Validation\Message\Group
 	 **/
     public static function __set_state($group ) {
-
+		return new self(group["_messages"]);
     }
 
 }

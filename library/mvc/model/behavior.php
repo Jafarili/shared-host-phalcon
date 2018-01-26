@@ -23,14 +23,14 @@ abstract class Behavior {
 	 * @param array options
 	 **/
     public function __construct($options  = null ) {
-
+		$this->_options = options;
     }
 
     /***
 	 * Checks whether the behavior must take action on certain event
 	 **/
     protected function mustTakeAction($eventName ) {
-
+		return isset $this->_options[eventName];
     }
 
     /***
@@ -41,13 +41,21 @@ abstract class Behavior {
 	 **/
     protected function getOptions($eventName  = null ) {
 
+		$options = $this->_options;
+		if ( eventName !== null ) {
+			if ( fetch eventOptions, options[eventName] ) {
+				return eventOptions;
+			}
+			return null;
+		}
+		return options;
     }
 
     /***
 	 * This method receives the notifications from the EventsManager
 	 **/
     public function notify($type , $model ) {
-
+		return null;
     }
 
     /***
@@ -58,7 +66,7 @@ abstract class Behavior {
 	 * @param array arguments
 	 **/
     public function missingMethod($model , $method , $arguments  = null ) {
-
+		return null;
     }
 
 }

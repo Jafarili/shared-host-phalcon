@@ -45,28 +45,33 @@ class Status {
 	 * Phalcon\Mvc\Model\Query\Status
 	 **/
     public function __construct($success , $model  = null ) {
-
+		$this->_success = success,
+			this->_model = model;
     }
 
     /***
 	 * Returns the model that executed the action
 	 **/
     public function getModel() {
-
+		return $this->_model;
     }
 
     /***
 	 * Returns the messages produced because of a failed operation
 	 **/
     public function getMessages() {
-
+		$model = $this->_model;
+		if ( gettype($model) != "object" ) {
+			return [];
+		}
+		return model->getMessages();
     }
 
     /***
 	 * Allows to check if the executed operation was successful
 	 **/
     public function success() {
-
+		return $this->_success;
     }
 
 }

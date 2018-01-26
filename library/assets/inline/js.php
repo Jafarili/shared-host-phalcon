@@ -22,7 +22,10 @@ class Js extends InlineBase {
 	 * @param array attributes
 	 **/
     public function __construct($content , $filter  = true , $attributes  = null ) {
-
+		if ( attributes == null ) {
+			$attributes = ["type": "text/javascript"];
+		}
+		parent::__construct("js", content, filter, attributes);
     }
 
 }

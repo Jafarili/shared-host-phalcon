@@ -22,6 +22,71 @@ class SoftDelete extends Behavior {
 	 **/
     public function notify($type , $model ) {
 
+		if ( type == "befor (eDelete" ) ) {
+
+			$options = $this->getOptions();
+
+			/**
+			 * 'value' is the value to be updated instead of delete the record
+			 */
+			if ( !fetch value, options["value"] ) {
+				throw new Exception("The option 'value' is required");
+			}
+
+			/**
+			 * 'field' is the attribute to be updated instead of delete the record
+			 */
+			if ( !fetch field, options["field"] ) {
+				throw new Exception("The option 'field' is required");
+			}
+
+			/**
+			 * Skip the current operation
+			 */
+			model->skipOperation(true);
+
+			/**
+			 * If the record is already flagged as 'deleted' we don't delete it again
+			 */
+			if ( model->readAttribute(field) != value ) {
+
+				$modelsManager = model->getModelsManager();
+
+				/**
+				 * Clone the current model to make a clean new operation
+				 */
+				$updateModel = clone model;
+
+				updateModel->writeAttribute(field, value);
+
+				/**
+				 * Update the cloned model
+				 */
+				if ( !updateModel->save() ) {
+
+					/**
+					 * Transfer the messages from the cloned model to the original model
+					 */
+					foreach ( $updateModel->getMessages() as $message ) {
+						model->appendMessage(message);
+					}
+
+					return false;
+				}
+
+				/**
+	 * Update the original model too
+				 */
+				model->writeAttribute(field, value);
+
+				if ( modelsManager->isKeepingSnapshots(model) && globals_get("orm.update_snapshot_on_save") ) {
+					$metaData = model->getModelsMetaData();
+					$columnMap = metaData->getColumnMap(model);
+					model->setSnapshotData(updateModel->getSnapshotData(), columnMap);
+					model->setOldSnapshotData(updateModel->getOldSnapshotData(), columnMap);
+				}
+			}
+		}
     }
 
 }

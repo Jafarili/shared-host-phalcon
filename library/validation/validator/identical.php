@@ -57,6 +57,44 @@ class Identical extends Validator {
 	 **/
     public function validate($validation , $field ) {
 
+		$value = validation->getValue(field);
+
+		if ( $this->hasOption("accepted") ) {
+			$accepted = $this->getOption("accepted");
+			if ( gettype($accepted) == "array" ) {
+				$accepted = accepted[field];
+			}
+			$valid = value == accepted;
+		} else {
+			if ( $this->hasOption("value") ) {
+				$valueOption = $this->getOption("value");
+				if ( gettype($valueOption) == "array" ) {
+					$valueOption = valueOption[field];
+				}
+				$valid = value == valueOption;
+			}
+		}
+
+		if ( !valid ) {
+			$label = $this->prepareLabel(validation, field),
+				message = $this->prepareMessage(validation, field, "Identical"),
+				code = $this->prepareCode(field);
+
+			$replacePairs = [":field": label];
+
+			validation->appendMessage(
+				new Message(
+					strtr(message, replacePairs),
+					field,
+					"Identical",
+					code
+				)
+			);
+
+			return false;
+		}
+
+		return true;
     }
 
 }

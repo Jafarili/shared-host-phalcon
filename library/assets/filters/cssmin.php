@@ -20,7 +20,7 @@ class Cssmin {
 	 * Filters the content using CSSMIN
 	 **/
     public function filter($content ) {
-
+		return phalcon_cssmin(content);
     }
 
 }

@@ -64,7 +64,7 @@ abstract class Injectable {
 	 * Sets the dependency injector
 	 **/
     public function setDI($dependencyInjector ) {
-
+		$this->_dependencyInjector = dependencyInjector;
     }
 
     /***
@@ -72,20 +72,25 @@ abstract class Injectable {
 	 **/
     public function getDI() {
 
+		$dependencyInjector = $this->_dependencyInjector;
+		if ( gettype($dependencyInjector) != "object" ) {
+			$dependencyInjector = Di::getDefault();
+		}
+		return dependencyInjector;
     }
 
     /***
 	 * Sets the event manager
 	 **/
     public function setEventsManager($eventsManager ) {
-
+		$this->_eventsManager = eventsManager;
     }
 
     /***
 	 * Returns the internal event manager
 	 **/
     public function getEventsManager() {
-
+		return $this->_eventsManager;
     }
 
     /***
@@ -93,6 +98,42 @@ abstract class Injectable {
 	 **/
     public function __get($propertyName ) {
 
+		$dependencyInjector = <DiInterface> $this->_dependencyInjector;
+		if ( gettype($dependencyInjector) != "object" ) {
+			$dependencyInjector = \Phalcon\Di::getDefault();
+			if ( gettype($dependencyInjector) != "object" ) {
+				throw new Exception("A dependency injection object is required to access the application services");
+			}
+		}
+
+		/**
+		 * Fallback to the PHP userland if ( the cache is not available
+		 */
+		if ( dependencyInjector->has(propertyName) ) {
+			$service = dependencyInjector->getShared(propertyName);
+			$this->{propertyName} = service;
+			return service;
+		}
+
+		if ( propertyName == "di" ) {
+			$this->{"di"} = dependencyInjector;
+			return dependencyInjector;
+		}
+
+		/**
+		 * Accessing the persistent property will create a session bag on any class
+		 */
+		if ( propertyName == "persistent" ) {
+			$persistent = <BagInterface> dependencyInjector->get("sessionBag", [get_class(this)]),
+				this->{"persistent"} = persistent;
+			return persistent;
+		}
+
+		/**
+		 * A notice is shown if ( the property is not defined and isn't a valid service
+		 */
+		trigger_error("Access to undefined property " . propertyName);
+		return null;
     }
 
 }

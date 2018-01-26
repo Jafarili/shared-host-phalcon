@@ -44,6 +44,14 @@ class Apc extends MetaData {
 	 **/
     public function __construct($options  = null ) {
 
+		if ( gettype($options) == "array" ) {
+			if ( fetch prefix, options["prefix"] ) {
+				$this->_prefix = prefix;
+			}
+			if ( fetch ttl, options["lif (etime"] ) {
+				$this->_ttl = ttl;
+			}
+		}
     }
 
     /***
@@ -51,13 +59,18 @@ class Apc extends MetaData {
 	 **/
     public function read($key ) {
 
+		$data = apc_fetch("$PMM$" . $this->_prefix . key);
+		if ( gettype($data) == "array" ) {
+			return data;
+		}
+		return null;
     }
 
     /***
 	 * Writes the meta-data to APC
 	 **/
     public function write($key , $data ) {
-
+		apc_store("$PMM$" . $this->_prefix . key, data, $this->_ttl);
     }
 
 }

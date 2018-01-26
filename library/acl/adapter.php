@@ -55,28 +55,28 @@ abstract class Adapter {
 	 * Sets the events manager
 	 **/
     public function setEventsManager($eventsManager ) {
-
+		$this->_eventsManager = eventsManager;
     }
 
     /***
 	 * Returns the internal event manager
 	 **/
     public function getEventsManager() {
-
+		return $this->_eventsManager;
     }
 
     /***
 	 * Sets the default access level (Phalcon\Acl::ALLOW or Phalcon\Acl::DENY)
 	 **/
     public function setDefaultAction($defaultAccess ) {
-
+		$this->_defaultAccess = defaultAccess;
     }
 
     /***
 	 * Returns the default ACL access level
 	 **/
     public function getDefaultAction() {
-
+		return $this->_defaultAccess;
     }
 
 }

@@ -40,6 +40,14 @@ class Xcache extends MetaData {
 	 **/
     public function __construct($options  = null ) {
 
+		if ( gettype($options) == "array" ) {
+			if ( fetch prefix, options["prefix"] ) {
+				$this->_prefix = prefix;
+			}
+			if ( fetch ttl, options["lif (etime"] ) {
+				$this->_ttl = ttl;
+			}
+		}
     }
 
     /***
@@ -49,7 +57,11 @@ class Xcache extends MetaData {
 	 * @return array
 	 **/
     public function read($key ) {
-
+		$data = xcache_get("$PMM$" . $this->_prefix . key);
+		if ( gettype($data) == "array" ) {
+			return data;
+		}
+		return null;
     }
 
     /***
@@ -59,7 +71,7 @@ class Xcache extends MetaData {
 	 * @param array data
 	 **/
     public function write($key , $data ) {
-
+		xcache_set("$PMM$" . $this->_prefix . key, data, $this->_ttl);
     }
 
 }

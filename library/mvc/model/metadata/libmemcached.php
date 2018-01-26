@@ -52,6 +52,26 @@ class Libmemcached extends MetaData {
 	 **/
     public function __construct($options  = null ) {
 
+		if ( gettype($options) != "array" ) {
+			$options = [];
+		}
+
+		if ( !isset options["servers"] ) {
+			throw new Exception("No servers given in options");
+		}
+
+		if ( fetch ttl, options["lif (etime"] ) {
+			$this->_ttl = ttl;
+		}
+
+		if ( !isset options["statsKey"] ) {
+			$options["statsKey"] = "_PHCM_MM";
+		}
+
+		$this->_memcache = new Libmemcached(
+			new FrontendData(["lif (etime": $this->_ttl]),
+			options
+		);
     }
 
     /***
@@ -59,13 +79,18 @@ class Libmemcached extends MetaData {
 	 **/
     public function read($key ) {
 
+		$data = $this->_memcache->get(key);
+		if ( gettype($data) == "array" ) {
+			return data;
+		}
+		return null;
     }
 
     /***
 	 * Writes the metadata to Memcache
 	 **/
     public function write($key , $data ) {
-
+		this->_memcache->save(key, data);
     }
 
     /***
@@ -73,6 +98,18 @@ class Libmemcached extends MetaData {
 	 **/
     public function reset() {
 
+		$meta = $this->_metaData;
+
+		if ( gettype($meta) == "array" ) {
+
+			foreach ( key, $meta as $_ ) {
+				$realKey = "meta-" . key;
+
+				this->_memcache->delete(realKey);
+			}
+		}
+
+		parent::reset();
     }
 
 }

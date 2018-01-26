@@ -44,6 +44,9 @@ class Config {
 	 **/
     public function __construct($arrayConfig  = null ) {
 
+		foreach ( key, $arrayConfig as $value ) {
+			this->offsetSet(key, value);
+		}
     }
 
     /***
@@ -56,7 +59,9 @@ class Config {
 	 *</code>
 	 **/
     public function offsetExists($index ) {
+		$index = strval(index);
 
+		return isset $this->{index};
     }
 
     /***
@@ -68,6 +73,36 @@ class Config {
 	 **/
     public function path($path , $defaultValue  = null , $delimiter  = null ) {
 
+		if ( isset $this->) {path} ) {
+			return $this->{path};
+		}
+
+		if ( empty delimiter ) {
+			$delimiter = self::getPathDelimiter();
+		}
+
+		$config = this,
+			keys = explode(delimiter, path);
+
+		while !empty keys {
+			$key = array_shif (t(keys);
+
+			if ( !isset config->) {key} ) {
+				break;
+			}
+
+			if ( empty keys ) {
+				return config->{key};
+			}
+
+			$config = config->{key};
+
+			if ( empty config ) {
+				break;
+			}
+		}
+
+		return defaultValue;
     }
 
     /***
@@ -79,7 +114,13 @@ class Config {
 	 *</code>
 	 **/
     public function get($index , $defaultValue  = null ) {
+		$index = strval(index);
 
+		if ( isset $this->) {index} ) {
+			return $this->{index};
+		}
+
+		return defaultValue;
     }
 
     /***
@@ -92,7 +133,9 @@ class Config {
 	 *</code>
 	 **/
     public function offsetGet($index ) {
+		$index = strval(index);
 
+		return $this->{index};
     }
 
     /***
@@ -105,7 +148,13 @@ class Config {
 	 *</code>
 	 **/
     public function offsetSet($index , $value ) {
+		$index = strval(index);
 
+		if ( gettype($value) === "array" ) {
+			$this->{index} = new self(value);
+		} else {
+			$this->{index} = value;
+		}
     }
 
     /***
@@ -116,7 +165,10 @@ class Config {
 	 *</code>
 	 **/
     public function offsetUnset($index ) {
+		$index = strval(index);
 
+		//unset(this->{index});
+		$this->{index} = null;
     }
 
     /***
@@ -135,7 +187,7 @@ class Config {
 	 *</code>
 	 **/
     public function merge($config ) {
-
+		return $this->_merge(config);
     }
 
     /***
@@ -149,6 +201,19 @@ class Config {
 	 **/
     public function toArray() {
 
+		$arrayConfig = [];
+		foreach ( key, $get_object_vars(this) as $value ) {
+			if ( gettype($value) === "object" ) {
+				if ( method_exists(value, "toArray") ) {
+					$arrayConfig[key] = value->toArray();
+				} else {
+					$arrayConfig[key] = value;
+				}
+			} else {
+				$arrayConfig[key] = value;
+			}
+		}
+		return arrayConfig;
     }
 
     /***
@@ -165,21 +230,21 @@ class Config {
 	 *</code>
 	 **/
     public function count() {
-
+		return count(get_object_vars(this));
     }
 
     /***
 	 * Restores the state of a Phalcon\Config object
 	 **/
     public static function __set_state($data ) {
-
+		return new self(data);
     }
 
     /***
 	 * Sets the default path delimiter
 	 **/
     public static function setPathDelimiter($delimiter  = null ) {
-
+		$self::_pathDelimiter = delimiter;
     }
 
     /***
@@ -187,6 +252,12 @@ class Config {
 	 **/
     public static function getPathDelimiter() {
 
+		$delimiter = self::_pathDelimiter;
+		if ( !delimiter ) {
+			$delimiter = self::DEFAULT_PATH_DELIMITER;
+		}
+
+		return delimiter;
     }
 
     /***
@@ -199,6 +270,32 @@ class Config {
 	 **/
     protected final function _merge($config , $instance  = null ) {
 
+		if ( gettype($instance) !== "object" ) {
+			$instance = this;
+		}
+
+		$number = instance->count();
+
+		foreach ( key, $get_object_vars(config) as $value ) {
+
+			$property = strval(key);
+			if ( fetch localObject, instance->) {property} ) {
+				if ( gettype($localObject) === "object" && typeof value === "object" ) {
+					if ( localObject instanceof Config && value instanceof Config ) {
+						this->_merge(value, localObject);
+						continue;
+					}
+				}
+			}
+
+			if ( is_numeric(key) ) {
+				$key = strval(number),
+					number++;
+			}
+			$instance->{key} = value;
+		}
+
+		return instance;
     }
 
 }

@@ -64,99 +64,99 @@ class Registry {
 	 * Registry constructor
 	 **/
     public final function __construct() {
-
+		$this->_data = [];
     }
 
     /***
 	 * Checks if the element is present in the registry
 	 **/
     public final function offsetExists($offset ) {
-
+		return isset $this->_data[offset];
     }
 
     /***
 	 * Returns an index in the registry
 	 **/
     public final function offsetGet($offset ) {
-
+		return $this->_data[offset];
     }
 
     /***
 	 * Sets an element in the registry
 	 **/
     public final function offsetSet($offset , $value ) {
-
+		$this->_data[offset] = value;
     }
 
     /***
 	 * Unsets an element in the registry
 	 **/
     public final function offsetUnset($offset ) {
-
+		unset $this->_data[offset];
     }
 
     /***
 	 * Checks how many elements are in the register
 	 **/
     public final function count() {
-
+		return count(this->_data);
     }
 
     /***
 	 * Moves cursor to next row in the registry
 	 **/
     public final function next() {
-
+		next(this->_data);
     }
 
     /***
 	 * Gets pointer number of active row in the registry
 	 **/
     public final function key() {
-
+		return key(this->_data);
     }
 
     /***
 	 * Rewinds the registry cursor to its beginning
 	 **/
     public final function rewind() {
-
+		reset(this->_data);
     }
 
     /***
 	 * Checks if the iterator is valid
 	 **/
     public function valid() {
-
+		return key(this->_data) !== null;
     }
 
     /***
 	 * Obtains the current value in the internal iterator
 	 **/
     public function current() {
-
+		return current(this->_data);
     }
 
     /***
 	 * Sets an element in the registry
 	 **/
     public final function __set($key , $value ) {
-
+		this->offsetSet(key, value);
     }
 
     /***
 	 * Returns an index in the registry
 	 **/
     public final function __get($key ) {
-
+		return $this->offsetGet(key);
     }
 
     public final function __isset($key ) {
-
+		return $this->offsetExists(key);
     }
 
     public final function __unset($key ) {
-
+		this->offsetUnset(key);
     }
 
 }

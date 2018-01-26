@@ -46,28 +46,28 @@ class Dispatcher extends CliDispatcher {
 	 * Sets the default task suffix
 	 **/
     public function setTaskSuffix($taskSuffix ) {
-
+		$this->_handlerSuffix = taskSuffix;
     }
 
     /***
 	 * Sets the default task name
 	 **/
     public function setDefaultTask($taskName ) {
-
+		$this->_defaultHandler = taskName;
     }
 
     /***
 	 * Sets the task name to be dispatched
 	 **/
     public function setTaskName($taskName ) {
-
+		$this->_handlerName = taskName;
     }
 
     /***
 	 * Gets last dispatched task name
 	 **/
     public function getTaskName() {
-
+		return $this->_handlerName;
     }
 
     /***
@@ -75,41 +75,53 @@ class Dispatcher extends CliDispatcher {
 	 **/
     protected function _throwDispatchException($message , $exceptionCode  = 0 ) {
 
+		$exception = new Exception(message, exceptionCode);
+
+		if ( $this->_handleException(exception) === false ) {
+			return false;
+		}
+
+		throw exception;
     }
 
     /***
 	 * Handles a user exception
 	 **/
     protected function _handleException($exception ) {
-
+		$eventsManager = <ManagerInterface> $this->_eventsManager;
+		if ( gettype($eventsManager) == "object" ) {
+			if ( eventsManager->fire("dispatch:befor (eException", this, exception) === false ) ) {
+				return false;
+			}
+		}
     }
 
     /***
 	 * Returns the latest dispatched controller
 	 **/
     public function getLastTask() {
-
+		return $this->_lastHandler;
     }
 
     /***
 	 * Returns the active task in the dispatcher
 	 **/
     public function getActiveTask() {
-
+		return $this->_activeHandler;
     }
 
     /***
 	 * Set the options to be dispatched
 	 **/
     public function setOptions($options ) {
-
+		$this->_options = options;
     }
 
     /***
 	 * Get dispatched options
 	 **/
     public function getOptions() {
-
+		return $this->_options;
     }
 
     /***
@@ -121,13 +133,32 @@ class Dispatcher extends CliDispatcher {
 	 **/
     public function getOption($option , $filters  = null , $defaultValue  = null ) {
 
+		$options = $this->_options;
+		if ( !fetch optionValue, options[option] ) {
+			return defaultValue;
+		}
+
+		if ( filters === null ) {
+			return optionValue;
+		}
+
+		$dependencyInjector = $this->_dependencyInjector;
+		if ( gettype($dependencyInjector) != "object" ) {
+			this->{"_throwDispatchException"}(
+				"A dependency injection object is required to access the 'filter' service",
+				CliDispatcher::EXCEPTION_NO_DI
+			);
+		}
+		$filter = <FilterInterface> dependencyInjector->getShared("filter");
+
+		return filter->sanitize(optionValue, filters);
     }
 
     /***
 	 * Check if an option exists
 	 **/
     public function hasOption($option ) {
-
+		return isset $this->_options[option];
     }
 
     /***
@@ -135,6 +166,9 @@ class Dispatcher extends CliDispatcher {
 	 **/
     public function callActionMethod($handler , $actionMethod , $params ) {
 
+		$options = $this->_options;
+		
+		return call_user_func_array([handler, actionMethod], [params, options]);
     }
 
 }

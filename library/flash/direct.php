@@ -18,7 +18,7 @@ class Direct extends FlashBase {
 	 * Outputs a message
 	 **/
     public function message($type , $message ) {
-
+		return $this->outputMessage(type, message);
     }
 
     /***
@@ -26,6 +26,16 @@ class Direct extends FlashBase {
 	 **/
     public function output($remove  = true ) {
 
+		$messages = $this->_messages;
+		if ( gettype($messages) == "array" ) {
+			foreach ( $messages as $message ) {
+				echo message;
+			}
+		}
+
+		if ( remove ) {
+			parent::clear();
+		}
     }
 
 }

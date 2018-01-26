@@ -75,20 +75,32 @@ class Transaction {
 	 **/
     public function __construct($dependencyInjector , $autoBegin  = false , $service  = null ) {
 
+		$this->_messages = [];
+
+		if ( service ) {
+			$connection = dependencyInjector->get(service);
+		} else {
+			$connection = dependencyInjector->get("db");
+		}
+
+		$this->_connection = connection;
+		if ( autoBegin ) {
+			connection->begin();
+		}
     }
 
     /***
 	 * Sets transaction manager related to the transaction
 	 **/
     public function setTransactionManager($manager ) {
-
+		$this->_manager = manager;
     }
 
     /***
 	 * Starts the transaction
 	 **/
     public function begin() {
-
+		return $this->_connection->begin();
     }
 
     /***
@@ -96,6 +108,12 @@ class Transaction {
 	 **/
     public function commit() {
 
+		$manager = $this->_manager;
+		if ( gettype($manager) == "object" ) {
+			manager->notif (yCommit(this);
+		}
+
+		return $this->_connection->commit();
     }
 
     /***
@@ -103,55 +121,77 @@ class Transaction {
 	 **/
     public function rollback($rollbackMessage  = null , $rollbackRecord  = null ) {
 
+		$manager = $this->_manager;
+		if ( gettype($manager) == "object" ) {
+			manager->notif (yRollback(this);
+		}
+
+		$connection = $this->_connection;
+		if ( connection->rollback() ) {
+			if ( !rollbackMessage ) {
+				$rollbackMessage = "Transaction aborted";
+			}
+			if ( gettype($rollbackRecord) == "object" ) {
+				$this->_rollbackRecord = rollbackRecord;
+			}
+			throw new TxFailed(rollbackMessage, $this->_rollbackRecord);
+		}
+
+		return true;
     }
 
     /***
 	 * Returns the connection related to transaction
 	 **/
     public function getConnection() {
-
+		if ( $this->_rollbackOnAbort ) {
+			if ( connection_aborted() ) {
+				this->rollback("The request was aborted");
+			}
+		}
+		return $this->_connection;
     }
 
     /***
 	 * Sets if is a reused transaction or new once
 	 **/
     public function setIsNewTransaction($isNew ) {
-
+		$this->_isNewTransaction = isNew;
     }
 
     /***
 	 * Sets flag to rollback on abort the HTTP connection
 	 **/
     public function setRollbackOnAbort($rollbackOnAbort ) {
-
+		$this->_rollbackOnAbort = rollbackOnAbort;
     }
 
     /***
 	 * Checks whether transaction is managed by a transaction manager
 	 **/
     public function isManaged() {
-
+		return gettype($this->_manager) == "object";
     }
 
     /***
 	 * Returns validations messages from last save try
 	 **/
     public function getMessages() {
-
+		return $this->_messages;
     }
 
     /***
 	 * Checks whether internal connection is under an active transaction
 	 **/
     public function isValid() {
-
+		return $this->_connection->isUnderTransaction();
     }
 
     /***
 	 * Sets object which generates rollback action
 	 **/
     public function setRollbackedRecord($record ) {
-
+		$this->_rollbackRecord = record;
     }
 
 }

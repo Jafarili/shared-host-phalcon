@@ -21,7 +21,7 @@ class Check extends Element {
 	 * @param array attributes
 	 **/
     public function render($attributes  = null ) {
-
+		return Tag::checkField(this->prepareAttributes(attributes, true));
     }
 
 }

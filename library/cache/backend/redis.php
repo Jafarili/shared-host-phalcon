@@ -57,7 +57,36 @@ class Redis extends Backend {
 	 * @param	array options
 	 **/
     public function __construct($frontend , $options  = null ) {
+		if ( gettype($options) != "array" ) {
+			$options = [];
+		}
 
+		if ( !isset options["host"] ) {
+			$options["host"] = "127.0.0.1";
+		}
+
+		if ( !isset options["port"] ) {
+			$options["port"] = 6379;
+		}
+
+		if ( !isset options["index"] ) {
+			$options["index"] = 0;
+		}
+
+		if ( !isset options["persistent"] ) {
+			$options["persistent"] = false;
+		}
+
+		if ( !isset options["statsKey"] ) {
+			// Disable tracking of cached keys per default
+			$options["statsKey"] = "";
+		}
+
+		if ( !isset options["auth"] ) {
+			$options["auth"] = "";
+		}
+
+		parent::__construct(frontend, options);
     }
 
     /***
@@ -65,6 +94,40 @@ class Redis extends Backend {
 	 **/
     public function _connect() {
 
+		$options = $this->_options;
+		$redis = new \Redis();
+
+		if ( !fetch host, options["host"] || !fetch port, options["port"] || !fetch persistent, options["persistent"] ) {
+			throw new Exception("Unexpected inconsistency in options");
+		}
+
+		if ( persistent ) {
+			$success = redis->pconnect(host, port);
+		} else {
+			$success = redis->connect(host, port);
+		}
+
+		if ( !success ) {
+			throw new Exception("Could not connect to the Redisd server ".host.":".port);
+		}
+
+		if ( fetch auth, options["auth"] && !empty options["auth"] ) {
+			$success = redis->auth(auth);
+
+			if ( !success ) {
+				throw new Exception("Failed to authenticate with the Redisd server");
+			}
+		}
+
+		if ( fetch index, options["index"] && index > 0 ) {
+			$success = redis->select(index);
+
+			if ( !success ) {
+				throw new Exception("Redis server selected database failed");
+			}
+		}
+
+		$this->_redis = redis;
     }
 
     /***
@@ -72,6 +135,27 @@ class Redis extends Backend {
 	 **/
     public function get($keyName , $lifetime  = null ) {
 
+		$redis = $this->_redis;
+		if ( gettype($redis) != "object" ) {
+			this->_connect();
+			$redis = $this->_redis;
+		}
+
+		$frontend = $this->_frontend;
+		$prefix = $this->_prefix;
+		$lastKey = "_PHCR" . prefix . keyName;
+		$this->_lastKey = lastKey;
+		$cachedContent = redis->get(lastKey);
+
+		if ( cachedContent === false ) {
+			return null;
+		}
+
+		if ( is_numeric(cachedContent) ) {
+			return cachedContent;
+		}
+
+		return frontend->afterRetrieve(cachedContent);
     }
 
     /***
@@ -90,7 +174,93 @@ class Redis extends Backend {
 	 * @param boolean stopBuffer
 	 **/
     public function save($keyName  = null , $content  = null , $lifetime  = null , $stopBuffer  = true ) {
+			tmp, tt1, success, options, specialKey, isBuffering;
 
+		if ( keyName === null ) {
+			$lastKey = $this->_lastKey;
+			$prefixedKey = substr(lastKey, 5);
+		} else {
+			$prefixedKey = $this->_prefix . keyName,
+				lastKey = "_PHCR" . prefixedKey,
+				this->_lastKey = lastKey;
+		}
+
+		if ( !lastKey ) {
+			throw new Exception("The cache must be started first");
+		}
+
+		$frontend = $this->_frontend;
+
+		/**
+		 * Check if ( a connection is created or make a new one
+		 */
+		$redis = $this->_redis;
+		if ( gettype($redis) != "object" ) {
+			this->_connect();
+			$redis = $this->_redis;
+		}
+
+		if ( content === null ) {
+			$cachedContent = frontend->getContent();
+		} else {
+			$cachedContent = content;
+		}
+
+		/**
+		 * Prepare the content in the frontend
+		 */
+		if ( !is_numeric(cachedContent) ) {
+			$preparedContent = frontend->befor (eStore(cachedContent);
+		} else {
+			$preparedContent = cachedContent;
+		}
+
+		if ( lif (etime === null ) {
+			$tmp = $this->_lastLif (etime;
+
+			if ( !tmp ) {
+				$tt1 = frontend->getLif (etime();
+			} else {
+				$tt1 = tmp;
+			}
+		} else {
+			$tt1 = lif (etime;
+		}
+
+		$success = redis->set(lastKey, preparedContent);
+
+		if ( !success ) {
+			throw new Exception("Failed storing the data in redis");
+		}
+
+		// Don't set expiration for ( negative ttl or zero
+		if ( tt1 >= 1 ) {
+			redis->settimeout(lastKey, tt1);
+		}
+
+		$options = $this->_options;
+
+		if ( !fetch specialKey, options["statsKey"] ) {
+			throw new Exception("Unexpected inconsistency in options");
+		}
+
+		if ( specialKey != "" ) {
+			redis->sAdd(specialKey, prefixedKey);
+		}
+
+		$isBuffering = frontend->isBuffering();
+
+		if ( stopBuffer === true ) {
+			frontend->stop();
+		}
+
+		if ( isBuffering === true ) {
+			echo cachedContent;
+		}
+
+		$this->_started = false;
+
+		return success;
     }
 
     /***
@@ -100,6 +270,29 @@ class Redis extends Backend {
 	 **/
     public function delete($keyName ) {
 
+		$redis = $this->_redis;
+		if ( gettype($redis) != "object" ) {
+			this->_connect();
+			$redis = $this->_redis;
+		}
+
+		$prefix = $this->_prefix;
+		$prefixedKey = prefix . keyName;
+		$lastKey = "_PHCR" . prefixedKey;
+		$options = $this->_options;
+
+		if ( !fetch specialKey, options["statsKey"] ) {
+			throw new Exception("Unexpected inconsistency in options");
+		}
+
+		if ( specialKey != "" ) {
+			redis->sRem(specialKey, prefixedKey);
+		}
+
+		/**
+		* Delete the key from redis
+		*/
+		return (bool) redis->delete(lastKey);
     }
 
     /***
@@ -114,6 +307,38 @@ class Redis extends Backend {
 	 **/
     public function queryKeys($prefix  = null ) {
 
+		$redis = $this->_redis;
+
+		if ( gettype($redis) != "object" ) {
+			this->_connect();
+			$redis = $this->_redis;
+		}
+
+		$options = $this->_options;
+
+		if ( !fetch specialKey, options["statsKey"] ) {
+			throw new Exception("Unexpected inconsistency in options");
+		}
+
+		if ( specialKey == "" ) {
+			throw new Exception("Cached keys need to be enabled to use this function (options['statsKey'] == '_PHCR')!");
+		}
+
+		/**
+		* Get the key from redis
+		*/
+		$keys = redis->sMembers(specialKey);
+		if ( gettype($keys) != "array" ) {
+			return [];
+		}
+
+		foreach ( idx, $keys as $key ) {
+			if ( !empty prefix && !starts_with(key, prefix) ) {
+				unset keys[idx];
+			}
+		}
+
+		return keys;
     }
 
     /***
@@ -124,6 +349,24 @@ class Redis extends Backend {
 	 **/
     public function exists($keyName  = null , $lifetime  = null ) {
 
+		if ( !keyName ) {
+			$lastKey = $this->_lastKey;
+		} else {
+			$prefix = $this->_prefix;
+			$lastKey = "_PHCR" . prefix . keyName;
+		}
+
+		if ( lastKey ) {
+			$redis = $this->_redis;
+			if ( gettype($redis) != "object" ) {
+				this->_connect();
+				$redis = $this->_redis;
+			}
+
+			return (bool) redis->exists(lastKey);
+		}
+
+		return false;
     }
 
     /***
@@ -133,6 +376,22 @@ class Redis extends Backend {
 	 **/
     public function increment($keyName  = null , $value  = 1 ) {
 
+		$redis = $this->_redis;
+
+		if ( gettype($redis) != "object" ) {
+			this->_connect();
+			$redis = $this->_redis;
+		}
+
+		if ( !keyName ) {
+			$lastKey = $this->_lastKey;
+		} else {
+			$prefix = $this->_prefix;
+			$lastKey = "_PHCR" . prefix . keyName;
+			$this->_lastKey = lastKey;
+		}
+
+		return redis->incrBy(lastKey, value);
     }
 
     /***
@@ -142,6 +401,22 @@ class Redis extends Backend {
 	 **/
     public function decrement($keyName  = null , $value  = 1 ) {
 
+		$redis = $this->_redis;
+
+		if ( gettype($redis) != "object" ) {
+			this->_connect();
+			$redis = $this->_redis;
+		}
+
+		if ( !keyName ) {
+			$lastKey = $this->_lastKey;
+		} else {
+			$prefix = $this->_prefix;
+			$lastKey = "_PHCR" . prefix . keyName;
+			$this->_lastKey = lastKey;
+		}
+
+		return redis->decrBy(lastKey, value);
     }
 
     /***
@@ -149,6 +424,33 @@ class Redis extends Backend {
 	 **/
     public function flush() {
 
+		$options = $this->_options;
+
+		if ( !fetch specialKey, options["statsKey"] ) {
+			throw new Exception("Unexpected inconsistency in options");
+		}
+
+		$redis = $this->_redis;
+
+		if ( gettype($redis) != "object" ) {
+			this->_connect();
+			$redis = $this->_redis;
+		}
+
+		if ( specialKey == "" ) {
+			throw new Exception("Cached keys need to be enabled to use this function (options['statsKey'] == '_PHCR')!");
+		}
+
+		$keys = redis->sMembers(specialKey);
+		if ( gettype($keys) == "array" ) {
+			foreach ( $keys as $key ) {
+				$lastKey = "_PHCR" . key;
+				redis->sRem(specialKey, key);
+				redis->delete(lastKey);
+			}
+		}
+
+		return true;
     }
 
 }

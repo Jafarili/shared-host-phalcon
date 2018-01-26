@@ -23,14 +23,15 @@ abstract class Engine extends Injectable {
 	 * Phalcon\Mvc\View\Engine constructor
 	 **/
     public function __construct($view , $dependencyInjector  = null ) {
-
+		$this->_view = view;
+		$this->_dependencyInjector = dependencyInjector;
     }
 
     /***
 	 * Returns cached output on another view stage
 	 **/
     public function getContent() {
-
+		return $this->_view->getContent();
     }
 
     /***
@@ -41,14 +42,14 @@ abstract class Engine extends Injectable {
 	 * @return string
 	 **/
     public function partial($partialPath , $params  = null ) {
-
+		return $this->_view->partial(partialPath, params);
     }
 
     /***
 	 * Returns the view component related to the adapter
 	 **/
     public function getView() {
-
+		return $this->_view;
     }
 
 }

@@ -52,6 +52,28 @@ class Numericality extends Validator {
 	 **/
     public function validate($validation , $field ) {
 
+		$value = validation->getValue(field);
+
+		if ( !preg_match("/^-?\d+\.?\d*$/", value) ) {
+			$label = $this->prepareLabel(validation, field),
+				message = $this->prepareMessage(validation, field, "Numericality"),
+				code = $this->prepareCode(field);
+
+			$replacePairs = [":field": label];
+
+			validation->appendMessage(
+				new Message(
+					strtr(message, replacePairs),
+					field,
+					"Numericality",
+					code
+				)
+			);
+
+			return false;
+		}
+
+		return true;
     }
 
 }

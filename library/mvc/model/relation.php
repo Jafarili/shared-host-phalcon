@@ -56,7 +56,11 @@ class Relation {
 	 * @param array options
 	 **/
     public function __construct($type , $referencedModel , $fields , $referencedFields , $options  = null ) {
-
+		$this->_type = type,
+			this->_referencedModel = referencedModel,
+			this->_fields = fields,
+			this->_referencedFields = referencedFields,
+			this->_options = options;
     }
 
     /***
@@ -67,21 +71,23 @@ class Relation {
 	 * @param string intermediateReferencedFields
 	 **/
     public function setIntermediateRelation($intermediateFields , $intermediateModel , $intermediateReferencedFields ) {
-
+		$this->_intermediateFields = intermediateFields,
+			this->_intermediateModel = intermediateModel,
+			this->_intermediateReferencedFields = intermediateReferencedFields;
     }
 
     /***
 	 * Returns the relation type
 	 **/
     public function getType() {
-
+		return $this->_type;
     }
 
     /***
 	 * Returns the referenced model
 	 **/
     public function getReferencedModel() {
-
+		return $this->_referencedModel;
     }
 
     /***
@@ -90,7 +96,7 @@ class Relation {
 	 * @return string|array
 	 **/
     public function getFields() {
-
+		return $this->_fields;
     }
 
     /***
@@ -99,7 +105,7 @@ class Relation {
 	 * @return string|array
 	 **/
     public function getReferencedFields() {
-
+		return $this->_referencedFields;
     }
 
     /***
@@ -108,7 +114,7 @@ class Relation {
 	 * @return string|array
 	 **/
     public function getOptions() {
-
+		return $this->_options;
     }
 
     /***
@@ -116,14 +122,17 @@ class Relation {
 	 * If the option doesn't exist null is returned	 
 	 **/
     public function getOption($name ) {
-
+		if ( fetch option, $this->_options[name] ) {
+			return option;
+		}
+		return null;
     }
 
     /***
 	 * Check whether the relation act as a foreign key
 	 **/
     public function isForeignKey() {
-
+		return isset $this->_options["for (eignKey"];
     }
 
     /***
@@ -132,7 +141,15 @@ class Relation {
 	 * @return string|array
 	 **/
     public function getForeignKey() {
-
+		$options = $this->_options;
+		if ( gettype($options) == "array" ) {
+			if ( fetch for (eignKey, options["for (eignKey"] ) ) {
+				if ( for (eignKey ) ) {
+					return for (eignKey;
+				}
+			}
+		}
+		return false;
     }
 
     /***
@@ -141,21 +158,36 @@ class Relation {
 	 * @return array
 	 **/
     public function getParams() {
-
+		$options = $this->_options;
+		if ( gettype($options) == "array" ) {
+			if ( fetch params, options["params"] ) {
+				if ( params ) {
+					return params;
+				}
+			}
+		}
+		return false;
     }
 
     /***
 	 * Check whether the relation is a 'many-to-many' relation or not
 	 **/
     public function isThrough() {
-
+		$type = $this->_type;
+		return type == self::HAS_ONE_THROUGH || type == self::HAS_MANY_THROUGH;
     }
 
     /***
 	 * Check if records returned by getting belongs-to/has-many are implicitly cached during the current request
 	 **/
     public function isReusable() {
-
+		$options = $this->_options;
+		if ( gettype($options) == "array" ) {
+			if ( fetch reusable, options["reusable"] ) {
+				return reusable;
+			}
+		}
+		return false;
     }
 
     /***
@@ -164,14 +196,14 @@ class Relation {
 	 * @return string|array
 	 **/
     public function getIntermediateFields() {
-
+		return $this->_intermediateFields;
     }
 
     /***
 	 * Gets the intermediate model for has-*-through relations
 	 **/
     public function getIntermediateModel() {
-
+		return $this->_intermediateModel;
     }
 
     /***
@@ -180,7 +212,7 @@ class Relation {
 	 * @return string|array
 	 **/
     public function getIntermediateReferencedFields() {
-
+		return $this->_intermediateReferencedFields;
     }
 
 }

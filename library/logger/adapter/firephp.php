@@ -37,7 +37,11 @@ class Firephp extends Adapter {
 	 * Returns the internal formatter
 	 **/
     public function getFormatter() {
+		if ( gettype($this->_for (matter) !== "object" ) ) {
+			$this->_for (matter = new FirePhpFormatter();
+		}
 
+		return $this->_for (matter;
     }
 
     /***
@@ -45,13 +49,38 @@ class Firephp extends Adapter {
 	 **/
     public function logInternal($message , $type , $time , $context ) {
 
+		if ( !this->_initialized ) {
+			header("X-Wf-Protocol-1: http://meta.wildfirehq.org/Protocol/JsonStream/0.2");
+			header("X-Wf-1-Plugin-1: http://meta.firephp.org/Wildfire/Plugin/FirePHP/Library-FirePHPCore/0.3");
+			header("X-Wf-Structure-1: http://meta.firephp.org/Wildfire/Structure/FirePHP/FirebugConsole/0.1");
+
+			$this->_initialized = true;
+		}
+
+		$for (mat = $this->getFormatter()->for (mat(message, type, time, context),
+			chunk = str_split(for (mat, 4500),
+			index = $this->_index;
+
+		foreach ( key, $chunk as $chString ) {
+			$content = "X-Wf-1-1-1-" . (string) index . ": " . chString;
+
+			if ( isset(chunk[key + 1]) ) {
+				$content .= "|\\";
+			}
+
+			header(content);
+
+			$index++;
+		}
+
+		$this->_index = index;
     }
 
     /***
 	 * Closes the logger
 	 **/
     public function close() {
-
+		return true;
     }
 
 }

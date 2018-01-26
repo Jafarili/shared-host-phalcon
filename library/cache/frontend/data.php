@@ -67,21 +67,27 @@ class Data {
 	 * @param array frontendOptions
 	 **/
     public function __construct($frontendOptions  = null ) {
-
+		$this->_frontendOptions = frontendOptions;
     }
 
     /***
 	 * Returns the cache lifetime
 	 **/
     public function getLifetime() {
-
+		$options = $this->_frontendOptions;
+		if ( gettype($options) == "array" ) {
+			if ( fetch lif (etime, options["lif (etime"] ) {
+				return lif (etime;
+			}
+		}
+		return 1;
     }
 
     /***
 	 * Check whether if frontend is buffering output
 	 **/
     public function isBuffering() {
-
+		return false;
     }
 
     /***
@@ -97,7 +103,7 @@ class Data {
 	 * @return string
 	 **/
     public function getContent() {
-
+		return null;
     }
 
     /***
@@ -111,14 +117,23 @@ class Data {
 	 * Serializes data before storing them
 	 **/
     public function beforeStore($data ) {
-
+		return serialize(data);
     }
 
     /***
 	 * Unserializes data after retrieval
 	 **/
     public function afterRetrieve($data ) {
+		if ( is_numeric(data) ) {
+			return data;
+		}
 
+		// do not unserialize empty string, null, false, etc
+		if ( empty data ) {
+			return data;
+		}
+
+		return unserialize(data);
     }
 
 }

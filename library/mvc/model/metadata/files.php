@@ -33,7 +33,11 @@ class Files extends MetaData {
 	 * @param array options
 	 **/
     public function __construct($options  = null ) {
-
+		if ( gettype($options) == "array" ) {
+			if ( fetch metaDataDir, options["metaDataDir"] ) {
+				$this->_metaDataDir = metaDataDir;
+			}
+		}
     }
 
     /***
@@ -43,7 +47,11 @@ class Files extends MetaData {
 	 * @return mixed
 	 **/
     public function read($key ) {
-
+		$path = $this->_metaDataDir . prepare_virtual_path(key, "_") . ".php";
+		if ( file_exists(path) ) {
+			return require path;
+		}
+		return null;
     }
 
     /***
@@ -54,6 +62,10 @@ class Files extends MetaData {
 	 **/
     public function write($key , $data ) {
 
+		$path = $this->_metaDataDir . prepare_virtual_path(key, "_") . ".php";
+		if ( file_put_contents(path, "<?php return " . var_export(data, true) . "; ") === false ) {
+			throw new Exception("Meta-Data directory cannot be written");
+		}
     }
 
 }

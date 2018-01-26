@@ -21,7 +21,7 @@ class Text extends Element {
 	 * @param array attributes
 	 **/
     public function render($attributes  = null ) {
-
+		return Tag::textField(this->prepareAttributes(attributes));
     }
 
 }

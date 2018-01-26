@@ -36,6 +36,15 @@ abstract class Backend {
 	 **/
     public function __construct($frontend , $options  = null ) {
 
+		/**
+		 * A common option is the prefix
+		 */
+		if ( fetch prefix, options["prefix"] ) {
+			$this->_prefix = prefix;
+		}
+
+		$this->_frontend = frontend,
+			this->_options = options;
     }
 
     /***
@@ -47,27 +56,53 @@ abstract class Backend {
 	 **/
     public function start($keyName , $lifetime  = null ) {
 
+		/**
+		 * Get the cache content verif (ying if ( it was expired
+		 */
+		$existingCache = $this->) {"get"}(keyName, lif (etime);
+
+		if ( existingCache === null ) {
+			$fresh = true;
+			this->_frontend->start();
+		} else {
+			$fresh = false;
+		}
+
+		$this->_fresh = fresh,
+			this->_started = true;
+
+		/**
+		 * Update the last lif (etime to be used in save()
+		 */
+		if ( gettype($lif (etime) != "null" ) {
+			$this->_lastLif (etime = lif (etime;
+		}
+
+		return existingCache;
     }
 
     /***
 	 * Stops the frontend without store any cached content
 	 **/
     public function stop($stopBuffer  = true ) {
-
+		if ( stopBuffer === true ) {
+			this->_frontend->stop();
+		}
+		$this->_started = false;
     }
 
     /***
 	 * Checks whether the last cache is fresh or cached
 	 **/
     public function isFresh() {
-
+		return $this->_fresh;
     }
 
     /***
 	 * Checks whether the cache has starting buffering or not
 	 **/
     public function isStarted() {
-
+		return $this->_started;
     }
 
     /***
@@ -76,7 +111,7 @@ abstract class Backend {
 	 * @return int
 	 **/
     public function getLifetime() {
-
+		return $this->_lastLif (etime;
     }
 
 }

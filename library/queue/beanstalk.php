@@ -88,7 +88,19 @@ class Beanstalk {
 	 * Phalcon\Queue\Beanstalk
 	 **/
     public function __construct($parameters ) {
+		if ( !isset parameters["host"] ) {
+			$parameters["host"] = self::DEFAULT_HOST;
+		}
 
+		if ( !isset parameters["port"]  ) {
+			$parameters["port"] = self::DEFAULT_PORT;
+		}
+
+		if ( !isset parameters["persistent"]  ) {
+			$parameters["persistent"] = false;
+		}
+
+		$this->_parameters = parameters;
     }
 
     /***
@@ -96,6 +108,31 @@ class Beanstalk {
 	 **/
     public function connect() {
 
+		$connection = $this->_connection;
+		if ( gettype($connection) == "resource" ) {
+			this->disconnect();
+		}
+
+		$parameters = $this->_parameters;
+
+		/**
+		 * Check if ( the connection must be persistent
+		 */
+		if ( parameters["persistent"] ) {
+			$connection = pfsockopen(parameters["host"], parameters["port"], null, null);
+		} else {
+			$connection = fsockopen(parameters["host"], parameters["port"], null, null);
+		}
+
+		if ( gettype($connection) != "resource" ) {
+			throw new Exception("Can't connect to Beanstalk server");
+		}
+
+		stream_set_timeout(connection, -1, null);
+
+		$this->_connection = connection;
+
+		return connection;
     }
 
     /***
@@ -103,6 +140,40 @@ class Beanstalk {
 	 **/
     public function put($data , $options  = null ) {
 
+		/**
+		 * Priority is 100 by default
+		 */
+		if ( !fetch priority, options["priority"] ) {
+			$priority = self::DEFAULT_PRIORITY;
+		}
+
+		if ( !fetch delay, options["delay"] ) {
+			$delay = self::DEFAULT_DELAY;
+		}
+
+		if ( !fetch ttr, options["ttr"] ) {
+			$ttr = self::DEFAULT_TTR;
+		}
+
+		/**
+		 * Data is automatically serialized befor (e be sent to the server
+		 */
+		$serialized = serialize(data);
+
+		/**
+		 * Create the command
+		 */
+		$length = strlen(serialized);
+		this->write("put " . priority . " " . delay . " " . ttr . " " . length . "\r\n" . serialized);
+
+		$response = $this->readStatus();
+		$status = response[0];
+
+		if ( status != "INSERTED" && status != "BURIED" ) {
+			return false;
+		}
+
+		return (int) response[1];
     }
 
     /***
@@ -110,6 +181,26 @@ class Beanstalk {
 	 **/
     public function reserve($timeout  = null ) {
 
+		if ( gettype($timeout) != "null" ) {
+			$command = "reserve-with-timeout " . timeout;
+		} else {
+			$command = "reserve";
+		}
+
+		this->write(command);
+
+		$response = $this->readStatus();
+		if ( response[0] != "RESERVED" ) {
+			return false;
+		}
+
+		/**
+		 * The job is in the first position
+		 * Next is the job length
+		 * The body is serialized
+		 * Create a beanstalk job abstraction
+		 */
+		return new Job(this, response[1], unserialize(this->read(response[2])));
     }
 
     /***
@@ -117,6 +208,14 @@ class Beanstalk {
 	 **/
     public function choose($tube ) {
 
+		this->write("use " . tube);
+
+		$response = $this->readStatus();
+		if ( response[0] != "USING" ) {
+			return false;
+		}
+
+		return response[1];
     }
 
     /***
@@ -124,6 +223,14 @@ class Beanstalk {
 	 **/
     public function watch($tube ) {
 
+		this->write("watch " . tube);
+
+		$response = $this->readStatus();
+		if ( response[0] != "WATCHING" ) {
+			return false;
+		}
+
+		return (int) response[1];
     }
 
     /***
@@ -131,6 +238,14 @@ class Beanstalk {
 	 **/
     public function ignore($tube ) {
 
+		this->write("ignore " . tube);
+
+		$response = $this->readStatus();
+		if ( response[0] != "WATCHING" ) {
+			return false;
+		}
+
+		return (int) response[1];
     }
 
     /***
@@ -138,6 +253,14 @@ class Beanstalk {
 	 **/
     public function pauseTube($tube , $delay ) {
 
+		this->write("pause-tube " . tube . " " . delay);
+
+		$response = $this->readStatus();
+		if ( response[0] != "PAUSED" ) {
+			return false;
+		}
+
+		return true;
     }
 
     /***
@@ -145,6 +268,14 @@ class Beanstalk {
 	 **/
     public function kick($bound ) {
 
+		this->write("kick " . bound);
+
+		$response = $this->readStatus();
+		if ( response[0] != "KICKED" ) {
+			return false;
+		}
+
+		return (int) response[1];
     }
 
     /***
@@ -152,6 +283,14 @@ class Beanstalk {
 	 **/
     public function stats() {
 
+		this->write("stats");
+
+		$response = $this->readYaml();
+		if ( response[0] != "OK" ) {
+			return false;
+		}
+
+		return response[2];
     }
 
     /***
@@ -159,6 +298,14 @@ class Beanstalk {
 	 **/
     public function statsTube($tube ) {
 
+		this->write("stats-tube " . tube);
+
+		$response = $this->readYaml();
+		if ( response[0] != "OK" ) {
+			return false;
+		}
+
+		return response[2];
     }
 
     /***
@@ -166,6 +313,14 @@ class Beanstalk {
 	 **/
     public function listTubes() {
 
+		this->write("list-tubes");
+
+		$response = $this->readYaml();
+		if ( response[0] != "OK" ) {
+			return false;
+		}
+
+		return response[2];
     }
 
     /***
@@ -173,6 +328,14 @@ class Beanstalk {
 	 **/
     public function listTubeUsed() {
 
+		this->write("list-tube-used");
+
+		$response = $this->readStatus();
+		if ( response[0] != "USING" ) {
+			return false;
+		}
+
+		return response[1];
     }
 
     /***
@@ -180,6 +343,14 @@ class Beanstalk {
 	 **/
     public function listTubesWatched() {
 
+		this->write("list-tubes-watched");
+
+		$response = $this->readYaml();
+		if ( response[0] != "OK" ) {
+			return false;
+		}
+
+		return response[2];
     }
 
     /***
@@ -187,6 +358,14 @@ class Beanstalk {
 	 **/
     public function peekReady() {
 
+		this->write("peek-ready");
+
+		$response = $this->readStatus();
+		if ( response[0] != "FOUND" ) {
+			return false;
+		}
+
+		return new Job(this, response[1], unserialize(this->read(response[2])));
     }
 
     /***
@@ -194,6 +373,14 @@ class Beanstalk {
 	 **/
     public function peekBuried() {
 
+		this->write("peek-buried");
+
+		$response = $this->readStatus();
+		if ( response[0] != "FOUND" ) {
+			return false;
+		}
+
+		return new Job(this, response[1], unserialize(this->read(response[2])));
     }
 
     /***
@@ -201,6 +388,16 @@ class Beanstalk {
 	 **/
     public function peekDelayed() {
 
+		if ( !this->write("peek-delayed") ) {
+			return false;
+		}
+
+		$response = $this->readStatus();
+		if ( response[0] != "FOUND" ) {
+			return false;
+		}
+
+		return new Job(this, response[1], unserialize(this->read(response[2])));
     }
 
     /***
@@ -208,13 +405,26 @@ class Beanstalk {
 	 **/
     public function jobPeek($id ) {
 
+		this->write("peek " . id);
+
+		$response = $this->readStatus();
+
+		if ( response[0] != "FOUND" ) {
+			return false;
+		}
+
+		return new Job(this, response[1], unserialize(this->read(response[2])));
     }
 
     /***
 	 * Reads the latest status from the Beanstalkd server
 	 **/
     final public function readStatus() {
-
+		$status = $this->read();
+		if ( status === false ) {
+			return [];
+		}
+		return explode(" ", status);
     }
 
     /***
@@ -222,6 +432,27 @@ class Beanstalk {
 	 **/
     final public function readYaml() {
 
+		$response = $this->readStatus();
+
+		$status = response[0];
+
+		if ( count(response) > 1 ) {
+			$numberOfBytes = response[1];
+
+			$response = $this->read();
+
+			$data = yaml_parse(response);
+		} else {
+			$numberOfBytes = 0;
+
+			$data = [];
+		}
+
+		return [
+			status,
+			numberOfBytes,
+			data
+		];
     }
 
     /***
@@ -230,6 +461,46 @@ class Beanstalk {
 	 **/
     public function read($length  = 0 ) {
 
+		$connection = $this->_connection;
+		if ( gettype($connection) != "resource" ) {
+			$connection = $this->connect();
+			if ( gettype($connection) != "resource" ) {
+				return false;
+			}
+		}
+
+		if ( length ) {
+
+			if ( feof(connection) ) {
+				return false;
+			}
+
+			$data = rtrim(stream_get_line(connection, length + 2), "\r\n");
+			if ( stream_get_meta_data(connection)["timed_out"] ) {
+				throw new Exception("Connection timed out");
+			}
+		} else {
+			$data = stream_get_line(connection, 16384, "\r\n");
+		}
+
+
+		if ( data === "UNKNOWN_COMMAND" ) {
+			throw new Exception("UNKNOWN_COMMAND");
+		}
+
+		if ( data === "JOB_TOO_BIG" ) {
+			throw new Exception("JOB_TOO_BIG");
+		}
+
+		if ( data === "BAD_FORMAT" ) {
+			throw new Exception("BAD_FORMAT");
+		}
+
+		if ( data === "OUT_OF_MEMORY" ) {
+			throw new Exception("OUT_OF_MEMORY");
+		}
+
+		return data;
     }
 
     /***
@@ -237,6 +508,16 @@ class Beanstalk {
 	 **/
     public function write($data ) {
 
+		$connection = $this->_connection;
+		if ( gettype($connection) != "resource" ) {
+			$connection = $this->connect();
+			if ( gettype($connection) != "resource" ) {
+				return false;
+			}
+		}
+
+		$packet = data . "\r\n";
+		return fwrite(connection, packet, strlen(packet));
     }
 
     /***
@@ -244,13 +525,25 @@ class Beanstalk {
 	 **/
     public function disconnect() {
 
+		$connection = $this->_connection;
+		if ( gettype($connection) != "resource" ) {
+			return false;
+		}
+
+		fclose(connection);
+		$this->_connection = null;
+
+		return true;
     }
 
     /***
 	 * Simply closes the connection.
 	 **/
     public function quit() {
+		this->write("quit");
+		this->disconnect();
 
+		return gettype($this->_connection) != "resource";
     }
 
 }

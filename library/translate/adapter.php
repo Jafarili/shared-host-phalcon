@@ -23,10 +23,15 @@ abstract class Adapter {
 
     public function __construct($options ) {
 
+		if ( !fetch interpolator, options["interpolator"] ) {
+			$interpolator = new AssociativeArray();
+		}
+		this->setInterpolator(interpolator);
     }
 
     public function setInterpolator($interpolator ) {
-
+		$this->_interpolator = interpolator;
+		return this;
     }
 
     /***
@@ -37,7 +42,7 @@ abstract class Adapter {
 	 * @return string
 	 **/
     public function t($translateKey , $placeholders  = null ) {
-
+		return $this->{"query"}(translateKey, placeholders);
     }
 
     /***
@@ -48,7 +53,7 @@ abstract class Adapter {
 	 * @return string
 	 **/
     public function _($translateKey , $placeholders  = null ) {
-
+		return $this->{"query"}(translateKey, placeholders);
     }
 
     /***
@@ -58,14 +63,14 @@ abstract class Adapter {
 	 * @param string value
 	 **/
     public function offsetSet($offset , $value ) {
-
+		throw new Exception("Translate is an immutable ArrayAccess object");
     }
 
     /***
 	 * Check whether a translation key exists
 	 **/
     public function offsetExists($translateKey ) {
-
+		return $this->{"exists"}(translateKey);
     }
 
     /***
@@ -74,7 +79,7 @@ abstract class Adapter {
 	 * @param string offset
 	 **/
     public function offsetUnset($offset ) {
-
+		throw new Exception("Translate is an immutable ArrayAccess object");
     }
 
     /***
@@ -84,14 +89,14 @@ abstract class Adapter {
 	 * @return string
 	 **/
     public function offsetGet($translateKey ) {
-
+		return $this->{"query"}(translateKey, null);
     }
 
     /***
 	 * Replaces placeholders by the values passed
 	 **/
     protected function replacePlaceholders($translation , $placeholders  = null ) {
-
+		return $this->_interpolator->{"replacePlaceholders"}(translation, placeholders);
     }
 
 }

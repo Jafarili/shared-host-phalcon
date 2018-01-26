@@ -57,14 +57,14 @@ class None {
 	 * Returns cache lifetime, always one second expiring content
 	 **/
     public function getLifetime() {
-
+		return 1;
     }
 
     /***
 	 * Check whether if frontend is buffering output, always false
 	 **/
     public function isBuffering() {
-
+		return false;
     }
 
     /***
@@ -94,14 +94,14 @@ class None {
 	 * Prepare data to be stored
 	 **/
     public function beforeStore($data ) {
-
+		return data;
     }
 
     /***
 	 * Prepares data to be retrieved to user
 	 **/
     public function afterRetrieve($data ) {
-
+		return data;
     }
 
 }

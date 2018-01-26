@@ -24,7 +24,10 @@ class Syslog extends Formatter {
 	 * @return array
 	 **/
     public function format($message , $type , $timestamp , $context  = null ) {
-
+		if ( gettype($context) === "array" ) {
+			$message = $this->interpolate(message, context);
+		}
+		return [type, message];
     }
 
 }

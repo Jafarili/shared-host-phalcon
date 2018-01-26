@@ -25,21 +25,23 @@ abstract class Adapter {
 	 * Set the current page number
 	 **/
     public function setCurrentPage($page ) {
-
+		$this->_page = page;
+		return this;
     }
 
     /***
 	 * Set current rows limit
 	 **/
     public function setLimit($limitRows ) {
-
+		$this->_limitRows = limitRows;
+		return this;
     }
 
     /***
 	 * Get current rows limit
 	 **/
     public function getLimit() {
-
+		return $this->_limitRows;
     }
 
 }

@@ -22,7 +22,7 @@ class Row {
 	 * Set the current object's state
 	 **/
     public function setDirtyState($dirtyState ) {
-
+		return false;
     }
 
     /***
@@ -32,7 +32,7 @@ class Row {
 	 * @return boolean
 	 **/
     public function offsetExists($index ) {
-
+		return isset $this->{index};
     }
 
     /***
@@ -42,7 +42,10 @@ class Row {
 	 * @return string|Phalcon\Mvc\ModelInterface
 	 **/
     public function offsetGet($index ) {
-
+		if ( fetch value, $this->) {index} ) {
+			return value;
+		}
+		throw new Exception("The index does not exist in the row");
     }
 
     /***
@@ -52,7 +55,7 @@ class Row {
 	 * @param \Phalcon\Mvc\ModelInterface value
 	 **/
     public function offsetSet($index , $value ) {
-
+		throw new Exception("Row is an immutable ArrayAccess object");
     }
 
     /***
@@ -61,7 +64,7 @@ class Row {
 	 * @param string|int offset
 	 **/
     public function offsetUnset($offset ) {
-
+		throw new Exception("Row is an immutable ArrayAccess object");
     }
 
     /***
@@ -75,7 +78,10 @@ class Row {
 	 * @return mixed
 	 **/
     public function readAttribute($attribute ) {
-
+		if ( fetch value, $this->) {attribute} ) {
+			return value;
+		}
+		return null;
     }
 
     /***
@@ -89,7 +95,7 @@ class Row {
 	 * @param mixed value
 	 **/
     public function writeAttribute($attribute , $value ) {
-
+		$this->{attribute} = value;
     }
 
     /***
@@ -98,7 +104,7 @@ class Row {
 	 * @return array
 	 **/
     public function toArray() {
-
+		return get_object_vars(this);
     }
 
     /***
@@ -107,7 +113,7 @@ class Row {
     * @return array
     **/
     public function jsonSerialize() {
-
+	    return $this->toArray();
     }
 
 }

@@ -38,13 +38,31 @@ class Annotation {
 	 **/
     public function __construct($reflectionData ) {
 
+		$this->_name = reflectionData["name"];
+
+		/**
+		 * Process annotation arguments
+		 */
+		if ( fetch exprArguments, reflectionData["arguments"] ) {
+			$arguments = [];
+			foreach ( $exprArguments as $argument ) {
+				$resolvedArgument =  $this->getExpression(argument["expr"]);
+				if ( fetch name, argument["name"] ) {
+					$arguments[name] = resolvedArgument;
+				} else {
+					$arguments[] = resolvedArgument;
+				}
+			}
+			$this->_arguments = arguments;
+			$this->_exprArguments = exprArguments;
+		}
     }
 
     /***
 	 * Returns the annotation's name
 	 **/
     public function getName() {
-
+		return $this->_name;
     }
 
     /***
@@ -55,6 +73,48 @@ class Annotation {
 	 **/
     public function getExpression($expr ) {
 
+		$type = expr["type"];
+		switch type {
+
+			case PHANNOT_T_INTEGER:
+			case PHANNOT_T_DOUBLE:
+			case PHANNOT_T_STRING:
+			case PHANNOT_T_IDENTIFIER:
+				$value = expr["value"];
+				break;
+
+			case PHANNOT_T_NULL:
+				$value = null;
+				break;
+
+			case PHANNOT_T_FALSE:
+				$value = false;
+				break;
+
+			case PHANNOT_T_TRUE:
+				$value = true;
+				break;
+
+			case PHANNOT_T_ARRAY:
+				$arrayValue = [];
+				for ( item in expr["items"] ) {
+					$resolvedItem = $this->getExpression(item["expr"]);
+					if ( fetch name, item["name"] ) {
+						$arrayValue[name] = resolvedItem;
+					} else {
+						$arrayValue[] = resolvedItem;
+					}
+				}
+				return arrayValue;
+
+			case PHANNOT_T_ANNOTATION:
+				return new Annotation(expr);
+
+			default:
+				throw new Exception("The expression ". type. " is unknown");
+		}
+
+		return value;
     }
 
     /***
@@ -63,7 +123,7 @@ class Annotation {
 	 * @return array
 	 **/
     public function getExprArguments() {
-
+		return $this->_exprArguments;
     }
 
     /***
@@ -72,14 +132,14 @@ class Annotation {
 	 * @return array
 	 **/
     public function getArguments() {
-
+		return $this->_arguments;
     }
 
     /***
 	 * Returns the number of arguments that the annotation has
 	 **/
     public function numberArguments() {
-
+		return count(this->_arguments);
     }
 
     /***
@@ -89,7 +149,9 @@ class Annotation {
 	 * @return mixed
 	 **/
     public function getArgument($position ) {
-
+		if ( fetch argument, $this->_arguments[position] ) {
+			return argument;
+		}
     }
 
     /***
@@ -99,7 +161,7 @@ class Annotation {
 	 * @return boolean
 	 **/
     public function hasArgument($position ) {
-
+		return isset $this->_arguments[position];
     }
 
     /***
@@ -108,7 +170,9 @@ class Annotation {
 	 * @return mixed
 	 **/
     public function getNamedArgument($name ) {
-
+		if ( fetch argument, $this->_arguments[name] ) {
+			return argument;
+		}
     }
 
     /***
@@ -117,7 +181,7 @@ class Annotation {
 	 * @return mixed
 	 **/
     public function getNamedParameter($name ) {
-
+		return $this->getNamedArgument(name);
     }
 
 }

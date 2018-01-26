@@ -25,7 +25,8 @@ class Select extends Element {
 	 * @param array attributes
 	 **/
     public function __construct($name , $options  = null , $attributes  = null ) {
-
+		$this->_optionsValues = options;
+		parent::__construct(name, attributes);
     }
 
     /***
@@ -35,7 +36,8 @@ class Select extends Element {
 	 * @return \Phalcon\Forms\Element
 	 **/
     public function setOptions($options ) {
-
+		$this->_optionsValues = options;
+		return this;
     }
 
     /***
@@ -44,7 +46,7 @@ class Select extends Element {
 	 * @return array|object
 	 **/
     public function getOptions() {
-
+		return $this->_optionsValues;
     }
 
     /***
@@ -55,6 +57,15 @@ class Select extends Element {
 	 **/
     public function addOption($option ) {
 
+		if ( gettype($option) == "array" ) {
+			foreach ( key, $option as $value ) {
+				$this->_optionsValues[key] = value;
+			}
+		} else {
+			$this->_optionsValues[] = option;
+		}
+
+		return this;
     }
 
     /***
@@ -63,7 +74,7 @@ class Select extends Element {
 	 * @param array attributes
 	 **/
     public function render($attributes  = null ) {
-
+		return Select::selectField(this->prepareAttributes(attributes), $this->_optionsValues);
     }
 
 }

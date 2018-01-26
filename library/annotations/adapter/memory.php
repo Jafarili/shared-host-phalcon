@@ -26,6 +26,11 @@ class Memory extends Adapter {
 	 **/
     public function read($key ) {
 
+		if ( fetch data, $this->_data[strtolower(key)] ) {
+			return data;
+		}
+
+		return false;
     }
 
     /***
@@ -33,6 +38,8 @@ class Memory extends Adapter {
 	 **/
     public function write($key , $data ) {
 
+		$lowercasedKey = strtolower(key);
+		$this->_data[lowercasedKey] = data;
     }
 
 }

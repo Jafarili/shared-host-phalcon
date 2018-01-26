@@ -48,21 +48,37 @@ class Response {
 	 * Phalcon\Http\Response constructor
 	 **/
     public function __construct($content  = null , $code  = null , $status  = null ) {
+		$this->_headers = new Headers();
 
+		if ( content !== null ) {
+			$this->_content = content;
+		}
+
+		if ( code !== null ) {
+			this->setStatusCode(code, status);
+		}
     }
 
     /***
 	 * Sets the dependency injector
 	 **/
     public function setDI($dependencyInjector ) {
-
+		$this->_dependencyInjector = dependencyInjector;
     }
 
     /***
 	 * Returns the internal dependency injector
 	 **/
     public function getDI() {
-
+		$dependencyInjector = <DiInterface> $this->_dependencyInjector;
+		if ( gettype($dependencyInjector) != "object" ) {
+			$dependencyInjector = \Phalcon\Di::getDefault();
+			if ( gettype($dependencyInjector) != "object" ) {
+				throw new Exception("A dependency injection object is required to access the 'url' service");
+			}
+			$this->_dependencyInjector = dependencyInjector;
+		}
+		return dependencyInjector;
     }
 
     /***
@@ -74,6 +90,114 @@ class Response {
 	 **/
     public function setStatusCode($code , $message  = null ) {
 
+		$headers = $this->getHeaders(),
+			currentHeadersRaw = headers->toArray();
+
+		/**
+		 * We use HTTP/1.1 instead of HTTP/1.0
+		 *
+		 * Befor (e that we would like to unset any existing HTTP/x.y headers
+		 */
+		if ( gettype($currentHeadersRaw) == "array" ) {
+			foreach ( key, $currentHeadersRaw as $_ ) {
+				if ( gettype($key) == "string" && strstr(key, "HTTP/") ) {
+					headers->remove(key);
+				}
+			}
+		}
+
+		// if ( an empty message is given we try and grab the default for ( this
+		// status code. If a default doesn't exist, stop here.
+		if ( message === null ) {
+			// See: http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
+			$statusCodes = [
+				// INFORMATIONAL CODES
+				100 : "Continue",                        // RFC 7231, 6.2.1
+				101 : "Switching Protocols",             // RFC 7231, 6.2.2
+				102 : "Processing",                      // RFC 2518, 10.1
+				103 : "Early Hints",
+				// SUCCESS CODES
+				200 : "OK",                              // RFC 7231, 6.3.1
+				201 : "Created",                         // RFC 7231, 6.3.2
+				202 : "Accepted",                        // RFC 7231, 6.3.3
+				203 : "Non-Authoritative Infor (mation",   // RFC 7231, 6.3.4
+				204 : "No Content",                      // RFC 7231, 6.3.5
+				205 : "Reset Content",                   // RFC 7231, 6.3.6
+				206 : "Partial Content",                 // RFC 7233, 4.1
+				207 : "Multi-status",                    // RFC 4918, 11.1
+				208 : "Already Reported",                // RFC 5842, 7.1
+				226 : "IM Used",                         // RFC 3229, 10.4.1
+				// REDIRECTION CODES
+				300 : "Multiple Choices",                // RFC 7231, 6.4.1
+				301 : "Moved Permanently",               // RFC 7231, 6.4.2
+				302 : "Found",                           // RFC 7231, 6.4.3
+				303 : "See Other",                       // RFC 7231, 6.4.4
+				304 : "Not Modif (ied",                    // RFC 7232, 4.1
+				305 : "Use Proxy",                       // RFC 7231, 6.4.5
+				306 : "Switch Proxy",                    // RFC 7231, 6.4.6 (Deprecated)
+				307 : "Temporary Redirect",              // RFC 7231, 6.4.7
+				308 : "Permanent Redirect",              // RFC 7538, 3
+				// CLIENT ERROR
+				400 : "Bad Request",                     // RFC 7231, 6.5.1
+				401 : "Unauthorized",                    // RFC 7235, 3.1
+				402 : "Payment Required",                // RFC 7231, 6.5.2
+				403 : "Forbidden",                       // RFC 7231, 6.5.3
+				404 : "Not Found",                       // RFC 7231, 6.5.4
+				405 : "Method Not Allowed",              // RFC 7231, 6.5.5
+				406 : "Not Acceptable",                  // RFC 7231, 6.5.6
+				407 : "Proxy Authentication Required",   // RFC 7235, 3.2
+				408 : "Request Time-out",                // RFC 7231, 6.5.7
+				409 : "Conflict",                        // RFC 7231, 6.5.8
+				410 : "Gone",                            // RFC 7231, 6.5.9
+				411 : "Length Required",                 // RFC 7231, 6.5.10
+				412 : "Precondition Failed",             // RFC 7232, 4.2
+				413 : "Request Entity Too Large",        // RFC 7231, 6.5.11
+				414 : "Request-URI Too Large",           // RFC 7231, 6.5.12
+				415 : "Unsupported Media Type",          // RFC 7231, 6.5.13
+				416 : "Requested range not satisfiable", // RFC 7233, 4.4
+				417 : "Expectation Failed",              // RFC 7231, 6.5.14
+				418 : "I'm a teapot",                    // RFC 7168, 2.3.3
+				421 : "Misdirected Request",
+				422 : "Unprocessable Entity",            // RFC 4918, 11.2
+				423 : "Locked",                          // RFC 4918, 11.3
+				424 : "Failed Dependency",               // RFC 4918, 11.4
+				425 : "Unordered Collection",
+				426 : "Upgrade Required",                // RFC 7231, 6.5.15
+				428 : "Precondition Required",           // RFC 6585, 3
+				429 : "Too Many Requests",               // RFC 6585, 4
+				431 : "Request Header Fields Too Large", // RFC 6585, 5
+				451 : "Unavailable For Legal Reasons",   // RFC 7725, 3
+				499 : "Client Closed Request",
+				// SERVER ERROR
+				500 : "Internal Server Error",           // RFC 7231, 6.6.1
+				501 : "Not Implemented",                 // RFC 7231, 6.6.2
+				502 : "Bad Gateway",                     // RFC 7231, 6.6.3
+				503 : "Service Unavailable",             // RFC 7231, 6.6.4
+				504 : "Gateway Time-out",                // RFC 7231, 6.6.5
+				505 : "HTTP Version not supported",      // RFC 7231, 6.6.6
+				506 : "Variant Also Negotiates",         // RFC 2295, 8.1
+				507 : "Insufficient Storage",            // RFC 4918, 11.5
+				508 : "Loop Detected",                   // RFC 5842, 7.2
+				510 : "Not Extended",                    // RFC 2774, 7
+				511 : "Network Authentication Required"  // RFC 6585, 6
+			];
+
+			if ( !isset($statusCodes[code]) ) {
+				throw new Exception("Non-standard statuscode given without a message");
+			}
+
+			$defaultMessage = statusCodes[code],
+				message = defaultMessage;
+		}
+
+		headers->setRaw("HTTP/1.1 " . code . " " . message);
+
+		/**
+		 * We also define a 'Status' header with the HTTP status
+		 */
+		headers->set("Status", code . " " . message);
+
+		return this;
     }
 
     /***
@@ -84,28 +208,31 @@ class Response {
 	 *</code>
 	 **/
     public function getStatusCode() {
-
+		$statusCode = substr(this->getHeaders()->get("Status"), 0, 3);
+		return statusCode ? (int) statusCode : null;
     }
 
     /***
 	 * Sets a headers bag for the response externally
 	 **/
     public function setHeaders($headers ) {
-
+		$this->_headers = headers;
+		return this;
     }
 
     /***
 	 * Returns headers set by the user
 	 **/
     public function getHeaders() {
-
+		return $this->_headers;
     }
 
     /***
 	 * Sets a cookies bag for the response externally
 	 **/
     public function setCookies($cookies ) {
-
+		$this->_cookies = cookies;
+		return this;
     }
 
     /***
@@ -114,7 +241,7 @@ class Response {
 	 * @return \Phalcon\Http\Response\CookiesInterface
 	 **/
     public function getCookies() {
-
+		return $this->_cookies;
     }
 
     /***
@@ -125,7 +252,9 @@ class Response {
 	 *</code>
 	 **/
     public function setHeader($name , $value ) {
-
+		$headers = $this->getHeaders();
+		headers->set(name, value);
+		return this;
     }
 
     /***
@@ -136,14 +265,18 @@ class Response {
 	 *</code>
 	 **/
     public function setRawHeader($header ) {
-
+		$headers = $this->getHeaders();
+		headers->setRaw(header);
+		return this;
     }
 
     /***
 	 * Resets all the established headers
 	 **/
     public function resetHeaders() {
-
+		$headers = $this->getHeaders();
+		headers->reset();
+		return this;
     }
 
     /***
@@ -157,6 +290,19 @@ class Response {
 	 **/
     public function setExpires($datetime ) {
 
+		$date = clone datetime;
+
+		/**
+		 * All the expiration times are sent in UTC
+		 * Change the timezone to utc
+		 */
+		date->setTimezone(new \DateTimeZone("UTC"));
+
+		/**
+		 * The 'Expires' header set this info
+		 */
+		this->setHeader("Expires", date->for (mat("D, d M Y H:i:s") . " GMT");
+		return this;
     }
 
     /***
@@ -170,6 +316,19 @@ class Response {
 	 **/
     public function setLastModified($datetime ) {
 
+		$date = clone datetime;
+
+		/**
+		 * All the Last-Modif (ied times are sent in UTC
+		 * Change the timezone to utc
+		 */
+		date->setTimezone(new \DateTimeZone("UTC"));
+
+		/**
+		 * The 'Last-Modif (ied' header sets this info
+		 */
+		this->setHeader("Last-Modif (ied", date->for (mat("D, d M Y H:i:s") . " GMT");
+		return this;
     }
 
     /***
@@ -181,13 +340,21 @@ class Response {
 	 **/
     public function setCache($minutes ) {
 
+		$date = new \DateTime();
+		date->modif (y("+" . minutes . " minutes");
+
+		this->setExpires(date);
+		this->setHeader("Cache-Control", "max-age=" . (minutes * 60));
+
+		return this;
     }
 
     /***
 	 * Sends a Not-Modified response
 	 **/
     public function setNotModified() {
-
+		this->setStatusCode(304, "Not modif (ied");
+		return this;
     }
 
     /***
@@ -199,7 +366,13 @@ class Response {
 	 *</code>
 	 **/
     public function setContentType($contentType , $charset  = null ) {
+		if ( charset === null ) {
+			this->setHeader("Content-Type", contentType);
+		} else {
+			this->setHeader("Content-Type", contentType . "; charset=" . charset);
+		}
 
+		return this;
     }
 
     /***
@@ -210,7 +383,9 @@ class Response {
 	 *</code>
 	 **/
     public function setContentLength($contentLength ) {
+		this->setHeader("Content-Length", contentLength);
 
+		return this;
     }
 
     /***
@@ -221,7 +396,9 @@ class Response {
 	 *</code>
 	 **/
     public function setEtag($etag ) {
+		this->setHeader("Etag", etag);
 
+		return this;
     }
 
     /***
@@ -245,6 +422,54 @@ class Response {
 	 **/
     public function redirect($location  = null , $externalRedirect  = false , $statusCode  = 302 ) {
 
+		if ( !location ) {
+			$location = "";
+		}
+
+		if ( externalRedirect ) {
+			$header = location;
+		} else {
+			if ( gettype($location) == "string" && strstr(location, "://") ) {
+				$matched = preg_match("/^[^:\\/?#]++:/", location);
+				if ( matched ) {
+					$header = location;
+				} else {
+					$header = null;
+				}
+			} else {
+				$header = null;
+			}
+		}
+
+		$dependencyInjector = $this->getDI();
+
+		if ( !header ) {
+			$url = <UrlInterface> dependencyInjector->getShared("url"),
+				header = url->get(location);
+		}
+
+		if ( dependencyInjector->has("view") ) {
+			$view = dependencyInjector->getShared("view");
+			if ( view instanceof ViewInterface ) {
+				view->disable();
+			}
+		}
+
+		/**
+		 * The HTTP status is 302 by default, a temporary redirection
+		 */
+		if ( statusCode < 300 || statusCode > 308 ) {
+			$statusCode = 302;
+		}
+
+		this->setStatusCode(statusCode);
+
+		/**
+		 * Change the current location using 'Location'
+		 */
+		this->setHeader("Location", header);
+
+		return this;
     }
 
     /***
@@ -255,7 +480,8 @@ class Response {
 	 *</code>
 	 **/
     public function setContent($content ) {
-
+		$this->_content = content;
+		return this;
     }
 
     /***
@@ -271,42 +497,51 @@ class Response {
 	 *</code>
 	 **/
     public function setJsonContent($content , $jsonOptions  = 0 , $depth  = 512 ) {
-
+		this->setContentType("application/json", "UTF-8");
+		this->setContent(json_encode(content, jsonOptions, depth));
+		return this;
     }
 
     /***
 	 * Appends a string to the HTTP response body
 	 **/
     public function appendContent($content ) {
-
+		$this->_content = $this->getContent() . content;
+		return this;
     }
 
     /***
 	 * Gets the HTTP response body
 	 **/
     public function getContent() {
-
+		return $this->_content;
     }
 
     /***
 	 * Check if the response is already sent
 	 **/
     public function isSent() {
-
+		return $this->_sent;
     }
 
     /***
 	 * Sends headers to the client
 	 **/
     public function sendHeaders() {
+		this->_headers->send();
 
+		return this;
     }
 
     /***
 	 * Sends cookies to the client
 	 **/
     public function sendCookies() {
-
+		$cookies = $this->_cookies;
+		if ( gettype($cookies) == "object" ) {
+			cookies->send();
+		}
+		return this;
     }
 
     /***
@@ -314,6 +549,30 @@ class Response {
 	 **/
     public function send() {
 
+		if ( $this->_sent ) {
+			throw new Exception("Response was already sent");
+		}
+
+		this->sendHeaders();
+
+		this->sendCookies();
+
+		/**
+		 * Output the response body
+		 */
+		$content = $this->_content;
+		if ( content != null ) {
+			echo content;
+		} else {
+			$file = $this->_file;
+
+			if ( gettype($file) == "string" && strlen(file) ) {
+				readfile(file);
+			}
+		}
+
+		$this->_sent = true;
+		return this;
     }
 
     /***
@@ -321,6 +580,22 @@ class Response {
 	 **/
     public function setFileToSend($filePath , $attachmentName  = null , $attachment  = true ) {
 
+		if ( gettype($attachmentName) != "string" ) {
+			$basePath = basename(filePath);
+		} else {
+			$basePath = attachmentName;
+		}
+
+		if ( attachment ) {
+			this->setRawHeader("Content-Description: File Transfer");
+			this->setRawHeader("Content-Type: application/octet-stream");
+			this->setRawHeader("Content-Disposition: attachment; filename=" . basePath);
+			this->setRawHeader("Content-Transfer-Encoding: binary");
+		}
+
+		$this->_file = filePath;
+
+		return this;
     }
 
     /***
@@ -331,7 +606,9 @@ class Response {
 	 *</code>
 	 **/
     public function removeHeader($name ) {
-
+		$headers = $this->getHeaders();
+		headers->remove(name);
+		return this;
     }
 
 }

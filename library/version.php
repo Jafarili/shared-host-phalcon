@@ -79,7 +79,7 @@ class Version {
 	 * E - Special release version i.e. RC1, Beta2 etc.
 	 **/
     protected static function _getVersion() {
-
+		return [3, 3, 1, 4, 0];
     }
 
     /***
@@ -89,6 +89,19 @@ class Version {
 	 **/
     protected final static function _getSpecial($special ) {
 
+		switch special {
+			case 1:
+				$suffix = "ALPHA";
+				break;
+			case 2:
+				$suffix = "BETA";
+				break;
+			case 3:
+				$suffix = "RC";
+				break;
+		}
+
+		return suffix;
     }
 
     /***
@@ -99,7 +112,24 @@ class Version {
 	 * </code>
 	 **/
     public static function get() {
+			special, specialNumber, result, suffix;
 
+		$version       = static::_getVersion();
+
+		$major         = version[self::VERSION_MAJOR],
+			medium        = version[self::VERSION_MEDIUM],
+			minor         = version[self::VERSION_MINOR],
+			special       = version[self::VERSION_SPECIAL],
+			specialNumber = version[self::VERSION_SPECIAL_NUMBER];
+
+		$result  = major . "." . medium . "." . minor . " ";
+		$suffix  = static::_getSpecial(special);
+
+		if ( suffix != "" ) {
+			$result .= suffix . " " . specialNumber;
+		}
+
+		return trim(result);
     }
 
     /***
@@ -110,7 +140,17 @@ class Version {
 	 * </code>
 	 **/
     public static function getId() {
+			special, specialNumber;
 
+		$version       = static::_getVersion();
+
+		$major         = version[self::VERSION_MAJOR],
+			medium        = version[self::VERSION_MEDIUM],
+			minor         = version[self::VERSION_MINOR],
+			special       = version[self::VERSION_SPECIAL],
+			specialNumber = version[self::VERSION_SPECIAL_NUMBER];
+
+		return major . sprintf("%02s", medium) . sprintf("%02s", minor) . special . specialNumber;
     }
 
     /***
@@ -125,6 +165,27 @@ class Version {
 	 **/
     public static function getPart($part ) {
 
+		$version = static::_getVersion();
+
+		switch part {
+
+			case self::VERSION_MAJOR:
+			case self::VERSION_MEDIUM:
+			case self::VERSION_MINOR:
+			case self::VERSION_SPECIAL_NUMBER:
+				$result = version[part];
+				break;
+
+			case self::VERSION_SPECIAL:
+				$result = static::_getSpecial(version[self::VERSION_SPECIAL]);
+				break;
+
+			default:
+				$result = static::get();
+				break;
+		}
+
+		return result;
     }
 
 }

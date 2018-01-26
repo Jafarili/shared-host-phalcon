@@ -48,7 +48,7 @@ class Php extends Config {
 	 * Phalcon\Config\Adapter\Php constructor
 	 **/
     public function __construct($filePath ) {
-
+		parent::__construct(require filePath);
     }
 
 }

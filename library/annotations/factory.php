@@ -27,7 +27,7 @@ class Factory extends BaseFactory {
 	 * @param \Phalcon\Config|array config
 	 **/
     public static function load($config ) {
-
+		return self::loadClass("Phalcon\\Annotations\\Adapter", config);
     }
 
 }

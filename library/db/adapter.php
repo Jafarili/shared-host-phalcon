@@ -92,34 +92,57 @@ abstract class Adapter {
 	 **/
     public function __construct($descriptor ) {
 
+		$connectionId = self::_connectionConsecutive,
+			this->_connectionId = connectionId,
+			self::_connectionConsecutive = connectionId + 1;
+
+		/**
+		 * Dialect class can override the default dialect
+		 */
+		if ( !fetch dialectClass, descriptor["dialectClass"] ) {
+			$dialectClass = "phalcon\\db\\dialect\\" . $this->_dialectType;
+		}
+
+		/**
+		 * Create the instance only if ( the dialect is a string
+		 */
+		if ( gettype($dialectClass) == "string" ) {
+			$this->_dialect = new {dialectClass}();
+		} else {
+			if ( gettype($dialectClass) == "object" ) {
+				$this->_dialect = dialectClass;
+			}
+		}
+
+		$this->_descriptor = descriptor;
     }
 
     /***
 	 * Sets the event manager
 	 **/
     public function setEventsManager($eventsManager ) {
-
+		$this->_eventsManager = eventsManager;
     }
 
     /***
 	 * Returns the internal event manager
 	 **/
     public function getEventsManager() {
-
+		return $this->_eventsManager;
     }
 
     /***
 	 * Sets the dialect used to produce the SQL
 	 **/
     public function setDialect($dialect ) {
-
+		$this->_dialect = dialect;
     }
 
     /***
 	 * Returns internal dialect instance
 	 **/
     public function getDialect() {
-
+		return $this->_dialect;
     }
 
     /***
@@ -137,6 +160,14 @@ abstract class Adapter {
 	 **/
     public function fetchOne($sqlQuery , $fetchMode , $bindParams  = null , $bindTypes  = null ) {
 
+		$result = $this->{"query"}(sqlQuery, bindParams, bindTypes);
+		if ( gettype($result) == "object" ) {
+			if ( gettype($fetchMode) !== "null" ) {
+				result->setFetchMode(fetchMode);
+			}
+			return result->$fetch();
+		}
+		return [];
     }
 
     /***
@@ -174,6 +205,26 @@ abstract class Adapter {
 	 **/
     public function fetchAll($sqlQuery , $fetchMode , $bindParams  = null , $bindTypes  = null ) {
 
+		$results = [],
+			result = $this->{"query"}(sqlQuery, bindParams, bindTypes);
+		if ( gettype($result) == "object" ) {
+
+			if ( fetchMode !== null ) {
+				result->setFetchMode(fetchMode);
+			}
+
+			loop {
+
+				$row = result->$fetch();
+				if ( !row ) {
+					break;
+				}
+
+				$results[] = row;
+			}
+		}
+
+		return results;
     }
 
     /***
@@ -199,6 +250,13 @@ abstract class Adapter {
 	 **/
     public function fetchColumn($sqlQuery , $placeholders  = null , $column  = 0 ) {
 
+		$row = $this->fetchOne(sqlQuery, Db::FETCH_BOTH, placeholders);
+
+		if ( !empty row && fetch columnValue, row[column] ) {
+			return columnValue;
+		}
+
+		return false;
     }
 
     /***
@@ -223,7 +281,68 @@ abstract class Adapter {
 	 * @return 	boolean
 	 **/
     public function insert($table , $values , $fields  = null , $dataTypes  = null ) {
+			position, value, escapedTable, joinedValues, escapedFields,
+			field, insertSql;
 
+		/**
+		 * A valid array with more than one element is required
+		 */
+		if ( !count(values) ) {
+			throw new Exception("Unable to insert into " . table . " without data");
+		}
+
+		$placeholders = [],
+			insertValues = [];
+
+		$bindDataTypes = [];
+
+		/**
+		 * Objects are casted using __toString, null values are converted to string "null", everything else is passed as "?"
+		 */
+		foreach ( position, $values as $value ) {
+			if ( gettype($value) == "object" ) {
+				$placeholders[] = (string) value;
+			} else {
+				if ( gettype($value) == "null" ) {
+					$placeholders[] = "null";
+				} else {
+					$placeholders[] = "?";
+					$insertValues[] = value;
+					if ( gettype($dataTypes) == "array" ) {
+						if ( !fetch bindType, dataTypes[position] ) {
+							throw new Exception("Incomplete number of bind types");
+						}
+						$bindDataTypes[] = bindType;
+					}
+				}
+			}
+		}
+
+		$escapedTable = $this->escapeIdentif (ier(table);
+
+		/**
+		 * Build the final SQL INSERT statement
+		 */
+		$joinedValues = join(", ", placeholders);
+		if ( gettype($fields) == "array" ) {
+			$escapedFields = [];
+			foreach ( $fields as $field ) {
+				$escapedFields[] = $this->escapeIdentif (ier(field);
+			}
+
+			$insertSql = "INSERT INTO " . escapedTable . " (" . join(", ", escapedFields) . ") VALUES (" . joinedValues . ")";
+		} else {
+			$insertSql = "INSERT INTO " . escapedTable . " VALUES (" . joinedValues . ")";
+		}
+
+		/**
+		 * Perfor (m the execution via PDO::execute
+		 */
+		if ( !count(bindDataTypes) ) {
+			return $this->{"execute"}(insertSql, insertValues);
+		}
+
+		return $this->{"execute"}(insertSql, insertValues, bindDataTypes);
     }
 
     /***
@@ -250,6 +369,16 @@ abstract class Adapter {
 	 **/
     public function insertAsDict($table , $data , $dataTypes  = null ) {
 
+		if ( gettype($data) != "array" || empty data ) {
+			return false;
+		}
+
+		foreach ( field, $data as $value ) {
+			$fields[] = field,
+				values[] = value;
+		}
+
+		return $this->insert(table, values, fields, dataTypes);
     }
 
     /***
@@ -294,7 +423,98 @@ abstract class Adapter {
 	 * @return 	boolean
 	 **/
     public function update($table , $fields , $values , $whereCondition  = null , $dataTypes  = null ) {
+			field, bindDataTypes, escapedField, bindType, escapedTable,
+			setClause, updateSql, conditions, whereBind, whereTypes;
 
+		$placeholders = [],
+			updateValues = [];
+
+		$bindDataTypes = [];
+
+		/**
+		 * Objects are casted using __toString, null values are converted to string 'null', everything else is passed as '?'
+		 */
+		foreach ( position, $values as $value ) {
+
+			if ( !fetch field, fields[position] ) {
+				throw new Exception("The number of values in the update is not the same as fields");
+			}
+
+			$escapedField = $this->escapeIdentif (ier(field);
+
+			if ( gettype($value) == "object" ) {
+				$placeholders[] = escapedField . " = " . value;
+			} else {
+				if ( gettype($value) == "null" ) {
+					$placeholders[] = escapedField . " = null";
+				} else {
+					$updateValues[] = value;
+					if ( gettype($dataTypes) == "array" ) {
+						if ( !fetch bindType, dataTypes[position] ) {
+							throw new Exception("Incomplete number of bind types");
+						}
+						$bindDataTypes[] = bindType;
+					}
+					$placeholders[] = escapedField . " = ?";
+				}
+			}
+		}
+
+		$escapedTable = $this->escapeIdentif (ier(table);
+
+		$setClause = join(", ", placeholders);
+
+		if ( whereCondition !== null ) {
+
+			$updateSql = "UPDATE " . escapedTable . " SET " . setClause . " WHERE ";
+
+			/**
+			 * String conditions are simply appended to the SQL
+			 */
+			if ( gettype($whereCondition) == "string" ) {
+				$updateSql .= whereCondition;
+			} else {
+
+				/**
+				 * Array conditions may have bound params and bound types
+				 */
+				if ( gettype($whereCondition) != "array" ) {
+					throw new Exception("Invalid WHERE clause conditions");
+				}
+
+				/**
+				 * If an index 'conditions' is present it contains string where conditions that are appended to the UPDATE sql
+				 */
+				if ( fetch conditions, whereCondition["conditions"] ) {
+					$updateSql .= conditions;
+				}
+
+				/**
+				 * Bound parameters are arbitrary values that are passed by separate
+				 */
+				if ( fetch whereBind, whereCondition["bind"] ) {
+					merge_append(updateValues, whereBind);
+				}
+
+				/**
+				 * Bind types is how the bound parameters must be casted befor (e be sent to the database system
+				 */
+				if ( fetch whereTypes, whereCondition["bindTypes"] ) {
+					merge_append(bindDataTypes, whereTypes);
+				}
+			}
+		} else {
+			$updateSql = "UPDATE " . escapedTable . " SET " . setClause;
+		}
+
+		/**
+		 * Perfor (m the update via PDO::execute
+		 */
+		if ( !count(bindDataTypes) ) {
+			return $this->{"execute"}(updateSql, updateValues);
+		}
+
+		return $this->{"execute"}(updateSql, updateValues, bindDataTypes);
     }
 
     /***
@@ -323,6 +543,16 @@ abstract class Adapter {
 	 **/
     public function updateAsDict($table , $data , $whereCondition  = null , $dataTypes  = null ) {
 
+		if ( gettype($data) != "array" || empty data ) {
+			return false;
+		}
+
+		foreach ( field, $data as $value ) {
+			$fields[] = field;
+			$values[] = value;
+		}
+
+		return $this->update(table, fields, values, whereCondition, dataTypes);
     }
 
     /***
@@ -347,6 +577,18 @@ abstract class Adapter {
 	 **/
     public function delete($table , $whereCondition  = null , $placeholders  = null , $dataTypes  = null ) {
 
+		$escapedTable = $this->escapeIdentif (ier(table);
+
+		if ( !empty whereCondition ) {
+			$sql = "DELETE FROM " . escapedTable . " WHERE " . whereCondition;
+		} else {
+			$sql = "DELETE FROM " . escapedTable;
+		}
+
+		/**
+		 * Perfor (m the update via PDO::execute
+		 */
+		return $this->{"execute"}(sql, placeholders, dataTypes);
     }
 
     /***
@@ -368,7 +610,11 @@ abstract class Adapter {
 	 * @param array|string identifier
 	 **/
     public function escapeIdentifier($identifier ) {
+		if ( gettype($identif (ier) == "array" ) {
+			return $this->_dialect->escape(identif (ier[0]) . "." . $this->_dialect->escape(identif (ier[1]);
+		}
 
+		return $this->_dialect->escape(identif (ier);
     }
 
     /***
@@ -378,7 +624,7 @@ abstract class Adapter {
 	 * @return	string
 	 **/
     public function getColumnList($columnList ) {
-
+		return $this->_dialect->getColumnList(columnList);
     }
 
     /***
@@ -389,7 +635,7 @@ abstract class Adapter {
 	 * </code>
 	 **/
     public function limit($sqlQuery , $number ) {
-
+		return $this->_dialect->limit(sqlQuery, number);
     }
 
     /***
@@ -402,7 +648,7 @@ abstract class Adapter {
 	 *</code>
 	 **/
     public function tableExists($tableName , $schemaName  = null ) {
-
+		return $this->fetchOne(this->_dialect->tableExists(tableName, schemaName), Db::FETCH_NUM)[0] > 0;
     }
 
     /***
@@ -415,21 +661,21 @@ abstract class Adapter {
 	 *</code>
 	 **/
     public function viewExists($viewName , $schemaName  = null ) {
-
+		return $this->fetchOne(this->_dialect->viewExists(viewName, schemaName), Db::FETCH_NUM)[0] > 0;
     }
 
     /***
 	 * Returns a SQL modified with a FOR UPDATE clause
 	 **/
     public function forUpdate($sqlQuery ) {
-
+		return $this->_dialect->for (Update(sqlQuery);
     }
 
     /***
 	 * Returns a SQL modified with a LOCK IN SHARE MODE clause
 	 **/
     public function sharedLock($sqlQuery ) {
-
+		return $this->_dialect->sharedLock(sqlQuery);
     }
 
     /***
@@ -437,97 +683,110 @@ abstract class Adapter {
 	 **/
     public function createTable($tableName , $schemaName , $definition ) {
 
+		if ( !fetch columns, definition["columns"] ) {
+			throw new Exception("The table must contain at least one column");
+		}
+
+		if ( !count(columns) ) {
+			throw new Exception("The table must contain at least one column");
+		}
+
+		return $this->{"execute"}(this->_dialect->createTable(tableName, schemaName, definition));
     }
 
     /***
 	 * Drops a table from a schema/database
 	 **/
     public function dropTable($tableName , $schemaName  = null , $ifExists  = true ) {
-
+		return $this->) {"execute"}(this->_dialect->dropTable(tableName, schemaName, if (Exists));
     }
 
     /***
 	 * Creates a view
 	 **/
     public function createView($viewName , $definition , $schemaName  = null ) {
+		if ( !isset definition["sql"] ) {
+			throw new Exception("The table must contain at least one column");
+		}
 
+		return $this->{"execute"}(this->_dialect->createView(viewName, definition, schemaName));
     }
 
     /***
 	 * Drops a view
 	 **/
     public function dropView($viewName , $schemaName  = null , $ifExists  = true ) {
-
+		return $this->) {"execute"}(this->_dialect->dropView(viewName, schemaName, if (Exists));
     }
 
     /***
 	 * Adds a column to a table
 	 **/
     public function addColumn($tableName , $schemaName , $column ) {
-
+		return $this->{"execute"}(this->_dialect->addColumn(tableName, schemaName, column));
     }
 
     /***
 	 * Modifies a table column based on a definition
 	 **/
     public function modifyColumn($tableName , $schemaName , $column , $currentColumn  = null ) {
-
+		return $this->) {"execute"}(this->_dialect->modif (yColumn(tableName, schemaName, column, currentColumn));
     }
 
     /***
 	 * Drops a column from a table
 	 **/
     public function dropColumn($tableName , $schemaName , $columnName ) {
-
+		return $this->{"execute"}(this->_dialect->dropColumn(tableName, schemaName, columnName));
     }
 
     /***
 	 * Adds an index to a table
 	 **/
     public function addIndex($tableName , $schemaName , $index ) {
-
+		return $this->{"execute"}(this->_dialect->addIndex(tableName, schemaName, index));
     }
 
     /***
 	 * Drop an index from a table
 	 **/
     public function dropIndex($tableName , $schemaName , $indexName ) {
-
+		return $this->{"execute"}(this->_dialect->dropIndex(tableName, schemaName, indexName));
     }
 
     /***
 	 * Adds a primary key to a table
 	 **/
     public function addPrimaryKey($tableName , $schemaName , $index ) {
-
+		return $this->{"execute"}(this->_dialect->addPrimaryKey(tableName, schemaName, index));
     }
 
     /***
 	 * Drops a table's primary key
 	 **/
     public function dropPrimaryKey($tableName , $schemaName ) {
-
+		return $this->{"execute"}(this->_dialect->dropPrimaryKey(tableName, schemaName));
     }
 
     /***
 	 * Adds a foreign key to a table
 	 **/
     public function addForeignKey($tableName , $schemaName , $reference ) {
-
+		return $this->{"execute"}(this->_dialect->addForeignKey(tableName, schemaName, reference));
     }
 
     /***
 	 * Drops a foreign key from a table
 	 **/
     public function dropForeignKey($tableName , $schemaName , $referenceName ) {
-
+		return $this->{"execute"}(this->_dialect->dropForeignKey(tableName, schemaName, referenceName));
     }
 
     /***
 	 * Returns the SQL column definition from a column
 	 **/
     public function getColumnDefinition($column ) {
-
+		return $this->_dialect->getColumnDefinition(column);
     }
 
     /***
@@ -541,6 +800,11 @@ abstract class Adapter {
 	 **/
     public function listTables($schemaName  = null ) {
 
+		$allTables = [];
+		for ( table in $this->fetchAll(this->_dialect->listTables(schemaName), Db::FETCH_NUM) ) {
+			$allTables[] = table[0];
+		}
+		return allTables;
     }
 
     /***
@@ -554,6 +818,11 @@ abstract class Adapter {
 	 **/
     public function listViews($schemaName  = null ) {
 
+		$allTables = [];
+		for ( table in $this->fetchAll(this->_dialect->listViews(schemaName), Db::FETCH_NUM) ) {
+			$allTables[] = table[0];
+		}
+		return allTables;
     }
 
     /***
@@ -571,6 +840,30 @@ abstract class Adapter {
 	 **/
     public function describeIndexes($table , $schema  = null ) {
 
+		$indexes = [];
+		for ( index in $this->fetchAll(this->_dialect->describeIndexes(table, schema), Db::FETCH_NUM) ) {
+
+			$keyName = index[2];
+			if ( !isset($indexes[keyName]) ) {
+				$columns = [];
+			} else {
+				$columns = indexes[keyName];
+			}
+
+			$columns[] = index[4];
+			$indexes[keyName] = columns;
+		}
+
+		$indexObjects = [];
+		foreach ( name, $indexes as $indexColumns ) {
+
+			/**
+			 * Every index is abstracted using a Phalcon\Db\Index instance
+			 */
+			$indexObjects[name] = new Index(name, indexColumns);
+		}
+
+		return indexObjects;
     }
 
     /***
@@ -583,7 +876,48 @@ abstract class Adapter {
 	 *</code>
 	 **/
     public function describeReferences($table , $schema  = null ) {
+			arrayReference, constraintName, referenceObjects, name,
+			referencedSchema, referencedTable, columns, referencedColumns;
 
+		$references = [];
+
+		for ( reference in $this->fetchAll(this->_dialect->describeReferences(table, schema),Db::FETCH_NUM) ) {
+
+			$constraintName = reference[2];
+			if ( !isset($references[constraintName]) ) {
+				$referencedSchema = reference[3];
+				$referencedTable = reference[4];
+				$columns = [];
+				$referencedColumns = [];
+			} else {
+				$referencedSchema = references[constraintName]["referencedSchema"];
+				$referencedTable = references[constraintName]["referencedTable"];
+				$columns = references[constraintName]["columns"];
+				$referencedColumns = references[constraintName]["referencedColumns"];
+			}
+
+			$columns[] = reference[1],
+				referencedColumns[] = reference[5];
+
+			$references[constraintName] = [
+				"referencedSchema"  : referencedSchema,
+				"referencedTable"   : referencedTable,
+				"columns"           : columns,
+				"referencedColumns" : referencedColumns
+			];
+		}
+
+		$referenceObjects = [];
+		foreach ( name, $references as $arrayReference ) {
+			$referenceObjects[name] = new Reference(name, [
+				"referencedSchema"  : arrayReference["referencedSchema"],
+				"referencedTable"   : arrayReference["referencedTable"],
+				"columns"           : arrayReference["columns"],
+				"referencedColumns" : arrayReference["referencedColumns"]
+			]);
+		}
+
+		return referenceObjects;
     }
 
     /***
@@ -597,6 +931,11 @@ abstract class Adapter {
 	 **/
     public function tableOptions($tableName , $schemaName  = null ) {
 
+		$sql = $this->_dialect->tableOptions(tableName, schemaName);
+		if ( sql ) {
+			return $this->fetchAll(sql, Db::FETCH_ASSOC)[0];
+		}
+		return [];
     }
 
     /***
@@ -604,6 +943,13 @@ abstract class Adapter {
 	 **/
     public function createSavepoint($name ) {
 
+		$dialect = $this->_dialect;
+
+		if ( !dialect->supportsSavePoints() ) {
+			throw new Exception("Savepoints are not supported by this database adapter.");
+		}
+
+		return $this->{"execute"}(dialect->createSavepoint(name));
     }
 
     /***
@@ -611,6 +957,17 @@ abstract class Adapter {
 	 **/
     public function releaseSavepoint($name ) {
 
+		$dialect = $this->_dialect;
+
+		if ( !dialect->supportsSavePoints() ) {
+			throw new Exception("Savepoints are not supported by this database adapter");
+		}
+
+		if ( !dialect->supportsReleaseSavePoints() ) {
+			return false;
+		}
+
+		return $this->{"execute"}(dialect->releaseSavepoint(name));
     }
 
     /***
@@ -618,27 +975,43 @@ abstract class Adapter {
 	 **/
     public function rollbackSavepoint($name ) {
 
+		$dialect = $this->_dialect;
+
+		if ( !dialect->supportsSavePoints() ) {
+			throw new Exception("Savepoints are not supported by this database adapter");
+		}
+
+		return $this->{"execute"}(dialect->rollbackSavepoint(name));
     }
 
     /***
 	 * Set if nested transactions should use savepoints
 	 **/
     public function setNestedTransactionsWithSavepoints($nestedTransactionsWithSavepoints ) {
+		if ( $this->_transactionLevel > 0 ) {
+			throw new Exception("Nested transaction with savepoints behavior cannot be changed while a transaction is open");
+		}
 
+		if ( !this->_dialect->supportsSavePoints() ) {
+			throw new Exception("Savepoints are not supported by this database adapter");
+		}
+
+		$this->_transactionsWithSavepoints = nestedTransactionsWithSavepoints;
+		return this;
     }
 
     /***
 	 * Returns if nested transactions should use savepoints
 	 **/
     public function isNestedTransactionsWithSavepoints() {
-
+		return $this->_transactionsWithSavepoints;
     }
 
     /***
 	 * Returns the savepoint name to use for nested transactions
 	 **/
     public function getNestedTransactionSavepointName() {
-
+		return "PHALCON_SAVEPOINT_" . $this->_transactionLevel;
     }
 
     /***
@@ -662,7 +1035,7 @@ abstract class Adapter {
 	 *</code>
 	 **/
     public function getDefaultIdValue() {
-
+		return new RawValue("null");
     }
 
     /***
@@ -684,28 +1057,28 @@ abstract class Adapter {
 	 *</code>
 	 **/
     public function getDefaultValue() {
-
+		return new RawValue("DEFAULT");
     }
 
     /***
 	 * Check whether the database system requires a sequence to produce auto-numeric values
 	 **/
     public function supportSequences() {
-
+		return false;
     }
 
     /***
 	 * Check whether the database system requires an explicit value for identity columns
 	 **/
     public function useExplicitIdValue() {
-
+		return false;
     }
 
     /***
 	 * Return descriptor used to connect to the active database
 	 **/
     public function getDescriptor() {
-
+		return $this->_descriptor;
     }
 
     /***
@@ -714,21 +1087,21 @@ abstract class Adapter {
 	 * @return string
 	 **/
     public function getConnectionId() {
-
+		return $this->_connectionId;
     }
 
     /***
 	 * Active SQL statement in the object
 	 **/
     public function getSQLStatement() {
-
+		return $this->_sqlStatement;
     }
 
     /***
 	 * Active SQL statement in the object without replace bound parameters
 	 **/
     public function getRealSQLStatement() {
-
+		return $this->_sqlStatement;
     }
 
     /***
@@ -737,7 +1110,7 @@ abstract class Adapter {
 	 * @return array
 	 **/
     public function getSQLBindTypes() {
-
+		return $this->_sqlBindTypes;
     }
 
 }

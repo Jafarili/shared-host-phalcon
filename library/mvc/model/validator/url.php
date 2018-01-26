@@ -49,6 +49,34 @@ class Url extends Validator {
 	 **/
     public function validate($record ) {
 
+		$field = $this->getOption("field");
+		if ( gettype($field) != "string" ) {
+			throw new Exception("Field name must be a string");
+		}
+
+		$value = record->readAttribute(field);
+		if ( $this->isSetOption("allowEmpty") && empty value ) {
+			return true;
+		}
+
+		/**
+		 * Filters the for (mat using FILTER_VALIDATE_URL
+		 */
+		if ( !filter_var(value, FILTER_VALIDATE_URL) ) {
+
+			/**
+			 * Check if ( the developer has defined a custom message
+			 */
+			$message = $this->getOption("message");
+			if ( empty message ) {
+				$message = ":field does not have a valid url for (mat";
+			}
+
+			this->appendMessage(strtr(message, [":field": field]), field, "Url");
+			return false;
+		}
+
+		return true;
     }
 
 }

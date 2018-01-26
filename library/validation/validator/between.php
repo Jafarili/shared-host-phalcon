@@ -63,6 +63,38 @@ class Between extends Validator {
 	 **/
     public function validate($validation , $field ) {
 
+		$value = validation->getValue(field),
+				minimum = $this->getOption("minimum"),
+				maximum = $this->getOption("maximum");
+
+		if ( gettype($minimum) == "array" ) {
+			$minimum = minimum[field];
+		}
+
+		if ( gettype($maximum) == "array" ) {
+			$maximum = maximum[field];
+		}
+
+		if ( value < minimum || value > maximum ) {
+			$label = $this->prepareLabel(validation, field),
+				message = $this->prepareMessage(validation, field, "Between"),
+				code = $this->prepareCode(field);
+
+			$replacePairs = [":field": label, ":min": minimum, ":max": maximum];
+
+			validation->appendMessage(
+				new Message(
+					strtr(message, replacePairs),
+					field,
+					"Between",
+					code
+				)
+			);
+
+			return false;
+		}
+
+		return true;
     }
 
 }

@@ -38,21 +38,21 @@ class Bag {
 	 * Phalcon\Session\Bag constructor
 	 **/
     public function __construct($name ) {
-
+		$this->_name = name;
     }
 
     /***
 	 * Sets the DependencyInjector container
 	 **/
     public function setDI($dependencyInjector ) {
-
+		$this->_dependencyInjector = dependencyInjector;
     }
 
     /***
 	 * Returns the DependencyInjector container
 	 **/
     public function getDI() {
-
+		return $this->_dependencyInjector;
     }
 
     /***
@@ -61,6 +61,28 @@ class Bag {
 	 **/
     public function initialize() {
 
+		$session = $this->_session;
+		if ( gettype($session) != "object" ) {
+
+			$dependencyInjector = $this->_dependencyInjector;
+			if ( gettype($dependencyInjector) != "object" ) {
+				$dependencyInjector = Di::getDefault();
+				if ( gettype($dependencyInjector) != "object" ) {
+					throw new Exception("A dependency injection object is required to access the 'session' service");
+				}
+			}
+
+			$session = dependencyInjector->getShared("session"),
+				this->_session = session;
+		}
+
+		$data = session->get(this->_name);
+		if ( gettype($data) != "array" ) {
+			$data = [];
+		}
+
+		$this->_data = data;
+		$this->_initialized = true;
     }
 
     /***
@@ -71,7 +93,11 @@ class Bag {
 	 *</code>
 	 **/
     public function destroy() {
-
+		if ( $this->_initialized === false ) {
+			this->initialize();
+		}
+		$this->_data = [];
+		this->_session->remove(this->_name);
     }
 
     /***
@@ -82,7 +108,12 @@ class Bag {
 	 *</code>
 	 **/
     public function set($property , $value ) {
+		if ( $this->_initialized === false ) {
+			this->initialize();
+		}
 
+		$this->_data[property] = value;
+		this->_session->set(this->_name, $this->_data);
     }
 
     /***
@@ -93,7 +124,7 @@ class Bag {
 	 *</code>
 	 **/
     public function __set($property , $value ) {
-
+		this->set(property, value);
     }
 
     /***
@@ -105,6 +136,21 @@ class Bag {
 	 **/
     public function get($property , $defaultValue  = null ) {
 
+		/**
+		 * Check first if ( the bag is initialized
+		 */
+		if ( $this->_initialized === false ) {
+			this->initialize();
+		}
+
+		/**
+		 * Retrieve the data
+		 */
+		if ( fetch value, $this->_data[property] ) {
+			return value;
+		}
+
+		return defaultValue;
     }
 
     /***
@@ -115,7 +161,7 @@ class Bag {
 	 *</code>
 	 **/
     public function __get($property ) {
-
+		return $this->get(property);
     }
 
     /***
@@ -128,7 +174,11 @@ class Bag {
 	 *</code>
 	 **/
     public function has($property ) {
+		if ( $this->_initialized === false ) {
+			this->initialize();
+		}
 
+		return isset $this->_data[property];
     }
 
     /***
@@ -141,7 +191,7 @@ class Bag {
 	 *</code>
 	 **/
     public function __isset($property ) {
-
+		return $this->has(property);
     }
 
     /***
@@ -152,7 +202,20 @@ class Bag {
 	 *</code>
 	 **/
     public function remove($property ) {
+		if ( $this->_initialized === false ) {
+			this->initialize();
+		}
 
+
+		$data = $this->_data;
+		if ( isset($data[property]) ) {
+			unset data[property];
+			this->_session->set(this->_name, data);
+			$this->_data = data;
+			return true;
+		}
+
+		return false;
     }
 
     /***
@@ -163,7 +226,7 @@ class Bag {
 	 *</code>
 	 **/
     public function __unset($property ) {
-
+		return $this->remove(property);
     }
 
     /***
@@ -174,30 +237,37 @@ class Bag {
 	 *</code>
 	 **/
     public final function count() {
-
+		if ( $this->_initialized === false ) {
+			this->initialize();
+		}
+		return count(this->_data);
     }
 
     /***
 	 * Returns the bag iterator
 	 **/
     public final function getIterator() {
+		if ( $this->_initialized === false ) {
+			this->initialize();
+		}
 
+		return new \ArrayIterator(this->_data);
     }
 
     public final function offsetSet($property , $value ) {
-
+		return $this->set(property, value);
     }
 
     public final function offsetExists($property ) {
-
+		return $this->has(property);
     }
 
     public final function offsetUnset($property ) {
-
+		return $this->remove(property);
     }
 
     public final function offsetGet($property ) {
-
+		return $this->get(property);
     }
 
 }

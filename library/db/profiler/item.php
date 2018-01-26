@@ -53,7 +53,7 @@ class Item {
 	 * Returns the total time in seconds spent by the profile
 	 **/
     public function getTotalElapsedSeconds() {
-
+		return $this->_finalTime - $this->_initialTime;
     }
 
 }

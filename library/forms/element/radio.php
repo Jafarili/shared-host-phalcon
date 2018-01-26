@@ -21,7 +21,7 @@ class Radio extends Element {
 	 * @param array attributes
 	 **/
     public function render($attributes  = null ) {
-
+		return Tag::radioField(this->prepareAttributes(attributes, true));
     }
 
 }

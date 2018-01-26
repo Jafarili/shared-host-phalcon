@@ -64,7 +64,9 @@ class Index {
 	 * Phalcon\Db\Index constructor
 	 **/
     public function __construct($name , $columns , $type  = null ) {
-
+		$this->_name = name;
+		$this->_columns = columns;
+		$this->_type = (string) type;
     }
 
     /***
@@ -72,6 +74,22 @@ class Index {
 	 **/
     public static function __set_state($data ) {
 
+		if ( !fetch indexName, data["_name"] ) {
+			throw new Exception("_name parameter is required");
+		}
+
+		if ( !fetch columns, data["_columns"] ) {
+			throw new Exception("_columns parameter is required");
+		}
+
+		if ( !fetch type, data["_type"] ) {
+			$type = "";
+		}
+
+		/**
+		 * Return a Phalcon\Db\Index as part of the returning state
+		 */
+		return new Index(indexName, columns, type);
     }
 
 }

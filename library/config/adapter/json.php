@@ -33,7 +33,7 @@ class Json extends Config {
 	 * Phalcon\Config\Adapter\Json constructor
 	 **/
     public function __construct($filePath ) {
-
+		parent::__construct(json_decode(file_get_contents(filePath), true));
     }
 
 }

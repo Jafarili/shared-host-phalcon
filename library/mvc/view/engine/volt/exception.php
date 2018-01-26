@@ -17,7 +17,9 @@ class Exception extends BaseException {
     protected $statement;
 
     public function __construct($message  =  , $statement , $code  = 0 , $previous  = null ) {
+		$this->statement = statement;
 
+		parent::__construct(message, code, previous);
     }
 
     /***
@@ -25,6 +27,12 @@ class Exception extends BaseException {
 	 **/
     public function getStatement() {
 
+		$statement = $this->statement;
+		if ( gettype($statement) !== "array" ) {
+			$statement = [];
+		}
+
+		return statement;
     }
 
 }
